@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victorian Homebrew Manager</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        vic: { black: '#1a1a1a', gold: '#d4af37', cream: '#f5e6c8', brown: '#5d4037', darkbrown: '#3e2723' }
+                    },
+                    fontFamily: { 
+                        serif: ['Merriweather', 'serif'],
+                        thai: ['Sarabun', 'sans-serif'] 
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out'
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        pulseGlow: { '0%, 100%': { boxShadow: '0 0 10px #d4af37' }, '50%': { boxShadow: '0 0 25px #fcd34d' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        body { font-family: 'Sarabun', 'Merriweather', sans-serif; background-color: #0f0f0f; color: #f5e6c8; }
+        h1, h2, h3, .font-serif { font-family: 'Merriweather', serif; }
+        
+        /* Components */
+        .btn-gold { @apply bg-gradient-to-r from-yellow-700 to-yellow-600 text-white px-4 py-2 rounded border border-yellow-400 cursor-pointer shadow-md flex items-center justify-center gap-2 transition hover:from-yellow-600 hover:to-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale; }
+        .input-vic { @apply bg-neutral-800 border border-yellow-600 text-yellow-100 rounded p-2 w-full focus:outline-none focus:border-yellow-400 placeholder-yellow-700/50 read-only:bg-neutral-900 read-only:text-gray-500 read-only:border-gray-700 read-only:cursor-not-allowed; }
+        .tab-btn { @apply px-4 py-2 text-sm font-bold border-b-2 transition-colors flex-1; }
+        .tab-btn.active { @apply border-vic-gold text-vic-gold bg-white/5; }
+        .tab-btn.inactive { @apply border-transparent text-gray-500 hover:text-gray-300; }
+
+        /* Status Effects */
+        .status-vip { @apply shadow-[0_0_15px_rgba(212,175,55,0.6)] border-yellow-300 animate-pulse-glow; }
+        .status-hide { @apply grayscale opacity-60 border-gray-600; }
+        .status-die .card-content { @apply blur-sm pointer-events-none select-none grayscale; }
+
+        [v-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-neutral-950 text-vic-cream min-h-screen relative overflow-x-hidden">
+
+    <div id="app" v-cloak class="pb-20">
+        
+        <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-3 pointer-events-none items-center w-full px-4">
+            <div v-for="toast in toasts" :key="toast.id" 
+                 class="pointer-events-auto min-w-[300px] md:min-w-[450px] p-5 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.8)] border-l-8 flex items-center gap-5 animate-slide-up bg-vic-darkbrown text-white border-y border-r border-y-vic-gold/30 backdrop-blur-md"
+                 :class="toast.type === 'error' ? 'border-l-red-600' : 'border-l-green-600'">
+                <div class="text-3xl">{{ toast.type === 'error' ? '❌' : '✅' }}</div>
+                <div>
+                    <h4 class="font-bold text-lg text-vic-gold font-serif">{{ toast.title }}</h4>
+                    <p class="text-sm text-gray-200">{{ toast.msg }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="loading" class="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center flex-col backdrop-blur-sm">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-vic-gold mb-4"></div>
+            <p class="text-vic-gold animate-pulse text-lg tracking-widest font-serif">LOADING...</p>
+        </div>
+
+        <div v-if="!session" class="flex items-center justify-center min-h-screen bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
+            <div class="bg-vic-darkbrown p-8 rounded border-2 border-vic-gold shadow-2xl w-96 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-vic-gold"></div>
+                <h1 class="text-3xl text-vic-gold mb-6 font-bold uppercase tracking-widest font-serif">Login</h1>
+                <form @submit.prevent="handleLogin">
+                    <input v-model="email" type="email" placeholder="Email" class="input-vic mb-4" required>
+                    <input v-model="password" type="password" placeholder="Password" class="input-vic mb-6" required>
+                    <button type="submit" :disabled="loading" class="btn-gold w-full font-bold text-lg">ENTER GATE</button>
+                </form>
+            </div>
+        </div>
+
+        <div v-else>
+            
+            <div class="w-full h-64 bg-cover bg-center relative border-b-4 border-vic-gold" :style="{ backgroundImage: 'url(' + headerImg + ')' }">
+                <div class="absolute inset-0 bg-black/60 flex items-center justify-center flex-col">
+                    <h1 class="text-5xl md:text-6xl text-vic-gold font-bold drop-shadow-lg tracking-wider font-serif">THE CAMPAIGN</h1>
+                    <p class="text-vic-cream/80 mt-2 text-xl font-serif">Victorian Era RPG</p>
+                </div>
+                
+                <div class="absolute top-4 right-4 flex items-center gap-3">
+                    <button v-if="currentUser?.skill_points > 0" @click="openUpgradeModal(currentUser)" class="bg-green-700/90 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold border border-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)] flex items-center gap-1">
+                        💪 UPGRADE <span class="bg-black/30 px-1 rounded">{{ currentUser.skill_points }}</span>
+                    </button>
+                    
+                    <div class="bg-black/80 p-1 px-3 rounded border border-vic-gold flex items-center gap-3">
+                        <img :src="currentUser?.character_img_url || 'https://via.placeholder.com/50'" class="w-8 h-8 rounded-full border border-vic-gold object-cover">
+                        <div class="text-right hidden md:block">
+                            <p class="text-vic-gold font-bold text-sm leading-tight">{{ currentUser?.character_name || 'Guest' }}</p>
+                            <p class="text-[10px] uppercase text-gray-400 leading-tight">{{ roleLabel(currentUser?.role) }}</p>
+                        </div>
+                        <button @click="handleLogout" :disabled="loading" class="text-xs text-red-400 hover:text-red-300 border border-red-900 p-1 rounded hover:bg-red-900/30">LOGOUT</button>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="bg-vic-darkbrown border-b border-vic-gold sticky top-0 z-40 shadow-xl flex justify-center gap-1 overflow-x-auto">
+                <button v-for="menu in ['dashboard', 'players', 'enemies', 'map']" 
+                        @click="currentView = menu" 
+                        :class="currentView === menu ? 'bg-vic-gold text-black font-bold' : 'text-vic-cream hover:bg-white/5'"
+                        class="px-6 py-3 uppercase text-sm transition tracking-wider whitespace-nowrap">
+                    {{ menu }}
+                </button>
+            </nav>
+
+            <main class="container mx-auto p-4 md:p-8 min-h-screen">
+                
+                <div v-if="currentView === 'dashboard'" class="max-w-4xl mx-auto animate-fade-in">
+                     <div class="bg-vic-darkbrown p-8 rounded border border-vic-gold flex flex-col md:flex-row gap-8 items-center md:items-start shadow-2xl relative overflow-hidden">
+                         <div class="absolute top-0 right-0 p-20 bg-vic-gold/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                         
+                         <div class="relative group shrink-0">
+                            <img :src="currentUser?.character_img_url || 'https://via.placeholder.com/150'" class="w-48 h-64 object-cover border-4 border-vic-gold rounded shadow-lg">
+                            <div v-if="currentUser?.skill_points > 0" class="absolute -bottom-3 -right-3 bg-green-900 text-white border border-green-500 px-3 py-1 font-bold rounded-full text-sm shadow animate-bounce">
+                                 SP: {{ currentUser?.skill_points }}
+                            </div>
+                         </div>
+                         
+                         <div class="flex-1 w-full text-center md:text-left z-10">
+                            <h2 class="text-4xl text-vic-gold font-bold mb-1 font-serif">{{ currentUser?.character_name || 'Loading...' }}</h2>
+                            <p class="text-gray-400 text-lg italic mb-6 border-b border-vic-brown/50 pb-4">{{ currentUser?.name }} ({{ roleLabel(currentUser?.role) }})</p>
+                            
+                            <div v-if="currentUser" class="grid grid-cols-2 gap-4 bg-black/20 p-4 rounded border border-vic-brown/30">
+                                <div><span class="block text-[10px] text-vic-gold uppercase tracking-wider">Pathway</span> <span class="text-lg">{{ currentUser.pathways }}</span></div>
+                                <div><span class="block text-[10px] text-vic-gold uppercase tracking-wider">Sequence</span> <span class="text-lg">{{ currentUser.sequence }}</span></div>
+                            </div>
+
+                            <div class="mt-6 flex gap-4 justify-center md:justify-start">
+                                <div class="bg-red-900/20 border border-red-900/50 p-3 rounded min-w-[100px] text-center">
+                                    <div class="text-xs text-red-400 uppercase">HP</div>
+                                    <div class="text-2xl font-bold text-red-500">{{ currentUser.hp }}</div>
+                                </div>
+                                <button v-if="currentUser.skill_points > 0" @click="openUpgradeModal(currentUser)" class="bg-green-800 hover:bg-green-700 text-white p-3 rounded border border-green-600 shadow flex-1 font-bold transition">
+                                    ⬆️ อัปเกรดพลังทันที
+                                </button>
+                            </div>
+                         </div>
+                     </div>
+                </div>
+
+                <div v-if="currentView === 'players'" class="animate-fade-in">
+                    <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
+                        <h2 class="text-2xl text-vic-gold font-bold font-serif">Characters Registry</h2>
+                        <button v-if="isAdmin" @click="openCreateModal('player')" :disabled="loading" class="btn-gold text-sm">+ Add Player</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template v-for="player in players" :key="player.id">
+                            <div v-if="player.status !== 'hide' || isAdmin" 
+                                 class="group bg-vic-darkbrown border border-vic-gold p-0 rounded overflow-hidden hover:shadow-2xl hover:border-white transition relative flex flex-col"
+                                 :class="['status-' + player.status]">
+                                
+                                <div class="h-72 overflow-hidden relative bg-black card-content">
+                                    <img :src="player.character_img_url" class="w-full h-full object-cover object-top transition duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+                                    
+                                    <div class="absolute top-2 left-2 z-20">
+                                        <button @click="openEmbedModal(player)" class="bg-black/60 text-vic-gold border border-vic-gold/50 p-1.5 rounded hover:bg-vic-gold hover:text-black transition shadow-lg" title="Embed Code">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 19" /></svg>
+                                        </button>
+                                    </div>
+
+                                    <div v-if="isAdmin" class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                                        <button @click="openGrantModal(player)" class="bg-purple-900/90 text-purple-200 p-1.5 rounded hover:bg-purple-800 text-xs border border-purple-500 shadow flex items-center gap-1 w-full">🎁 Gift SP</button>
+                                        <button @click="openEditModal(player, 'player')" class="bg-blue-900/90 text-blue-200 p-1.5 rounded hover:bg-blue-800 text-xs border border-blue-500 shadow flex items-center gap-1 w-full">✏️ Edit</button>
+                                        
+                                        <div class="relative group/status w-full">
+                                            <button class="bg-yellow-900/90 text-yellow-200 p-1.5 rounded border border-yellow-500 shadow text-xs w-full text-left">👁️ Status</button>
+                                            <div class="absolute right-0 top-0 mr-full bg-vic-darkbrown border border-vic-gold rounded shadow-xl hidden group-hover/status:block w-32 z-30 overflow-hidden">
+                                                <button @click="changeStatus(player.id, 'active')" class="block w-full text-left px-3 py-2 hover:bg-white/10 text-green-400 text-xs">Active</button>
+                                                <button @click="changeStatus(player.id, 'vip')" class="block w-full text-left px-3 py-2 hover:bg-white/10 text-yellow-400 text-xs">VIP</button>
+                                                <button @click="changeStatus(player.id, 'hide')" class="block w-full text-left px-3 py-2 hover:bg-white/10 text-gray-400 text-xs">Hide</button>
+                                                <button @click="changeStatus(player.id, 'die')" class="block w-full text-left px-3 py-2 hover:bg-white/10 text-red-500 text-xs">Die</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <button v-if="isSuperAdmin" @click="confirmDelete(player.id, 'player')" class="bg-red-900/90 text-red-200 p-1.5 rounded hover:bg-red-800 text-xs border border-red-500 shadow w-full">🗑️ Delete</button>
+                                    </div>
+
+                                    <div class="absolute bottom-3 left-4 right-4">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <h3 class="text-2xl font-bold text-vic-gold truncate font-serif drop-shadow-md">{{ player.character_name }}</h3>
+                                            <span v-if="isAdmin || currentUser?.id === player.id" class="text-[10px] bg-blue-900/80 text-blue-200 px-2 py-0.5 rounded border border-blue-500">SP: {{ player.skill_points || 0 }}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-300">{{ player.pathways }} (Seq {{ player.sequence }})</p>
+                                    </div>
+                                </div>
+                                
+                                <div v-if="player.status === 'die'" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                                    <div class="bg-black/60 w-full text-center border-y-4 border-red-600 py-4 transform -rotate-12 backdrop-blur-sm shadow-xl">
+                                        <h1 class="text-6xl font-bold text-red-600 tracking-widest drop-shadow-[0_0_10px_rgba(255,0,0,0.8)] font-serif">OUT</h1>
+                                    </div>
+                                </div>
+
+                                <button @click="showFullDetail(player, 'player')" :disabled="loading || player.status === 'die'" class="w-full bg-neutral-900 text-vic-gold py-3 text-sm font-bold border-t border-vic-brown hover:bg-vic-gold hover:text-black transition">
+                                    {{ player.status === 'die' ? '💀 DEAD' : 'VIEW CHARACTER SHEET' }}
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                <div v-if="currentView === 'enemies'" class="animate-fade-in">
+                     <div class="flex justify-between items-center mb-6 bg-red-950/30 p-4 rounded border border-red-900">
+                        <h2 class="text-2xl text-red-500 font-bold font-serif">Active Threats</h2>
+                        <button v-if="isAdmin" @click="openCreateModal('enemy')" :disabled="loading" class="px-4 py-2 bg-red-900 text-red-100 border border-red-600 rounded hover:bg-red-800 font-bold text-sm">+ Add Enemy</button>
+                    </div>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <div v-for="enemy in enemies" :key="enemy.id" class="bg-neutral-900 border border-red-900 p-4 rounded hover:border-red-500 transition relative group">
+                            <div class="flex gap-4">
+                                <img :src="enemy.character_img_url || 'https://via.placeholder.com/100'" class="w-20 h-20 object-cover rounded border border-red-800 shrink-0">
+                                <div>
+                                    <h3 class="text-lg text-red-500 font-bold mb-1">{{ enemy.character_name }}</h3>
+                                    <p class="text-sm text-gray-500">{{ enemy.pathways }}</p>
+                                    <p class="text-xs text-red-400 mt-1">HP: {{ enemy.hp }}</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex gap-2">
+                                <button @click="showFullDetail(enemy, 'enemy')" :disabled="loading" class="flex-1 text-xs text-center border border-red-900 text-red-400 py-1 rounded hover:bg-red-900 hover:text-white transition">Stats</button>
+                                <button v-if="isAdmin" @click="openEditModal(enemy, 'enemy')" :disabled="loading" class="px-2 text-xs border border-blue-900 text-blue-400 rounded hover:bg-blue-900 hover:text-white">Edit</button>
+                                <button v-if="isSuperAdmin" @click="confirmDelete(enemy.id, 'enemy')" :disabled="loading" class="px-2 text-xs border border-red-900 text-red-400 rounded hover:bg-red-900 hover:text-white">Del</button>
+                            </div>
+                         </div>
+                     </div>
+                </div>
+
+                <div v-if="currentView === 'map'" class="flex flex-col items-center justify-center py-20 bg-black/20 border border-vic-gold/30 rounded animate-fade-in">
+                    <h2 class="text-xl text-vic-gold uppercase font-serif tracking-widest">Under Construction</h2>
+                    <p class="text-gray-500 mt-2">The architects are working on this...</p>
+                </div>
+            </main>
+
+            <div v-if="modals.upgrade" class="fixed inset-0 bg-black/90 z-[85] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown w-full max-w-2xl rounded border-2 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)] flex flex-col relative animate-fade-in">
+                    <div class="p-4 border-b border-green-900/50 bg-black/30 flex justify-between items-center">
+                        <div><h3 class="text-2xl text-green-400 font-bold">อัปเกรดพลัง</h3><p class="text-gray-400 text-sm">ใช้ SP เพื่อเพิ่มค่าสถานะ</p></div>
+                        <div class="text-right"><span class="block text-xs text-gray-500">แต้มคงเหลือ</span><span class="text-2xl font-bold text-green-400">{{ upgradeForm.remainingSP }} SP</span></div>
+                    </div>
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div v-for="stat in statsConfig" :key="stat.key" class="bg-neutral-900 p-3 rounded border border-gray-700 flex justify-between items-center">
+                                <div><div class="text-sm text-gray-400 font-bold">{{ stat.label }}</div><div class="text-2xl font-bold text-white">{{ upgradeForm[stat.key] }}</div></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="text-xs bg-black px-2 py-1 rounded text-gray-500">Mod: {{ Math.floor((upgradeForm[stat.key] - 10) / 2) }}</div>
+                                    <button @click="increaseStat(stat.key)" :disabled="upgradeForm.remainingSP <= 0" class="w-8 h-8 rounded bg-green-700 hover:bg-green-600 text-white font-bold flex items-center justify-center border border-green-500 disabled:opacity-30 disabled:cursor-not-allowed">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-700 bg-black/20 flex justify-end gap-3">
+                        <button @click="modals.upgrade = false" :disabled="loading" class="px-4 py-2 text-gray-400 hover:text-white">ยกเลิก</button>
+                        <button @click="submitUpgrade" :disabled="loading" class="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded font-bold shadow-lg">ยืนยัน</button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="modals.grant" class="fixed inset-0 bg-black/90 z-[80] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown p-6 rounded border-2 border-purple-500 w-full max-w-sm relative shadow-2xl">
+                    <button @click="modals.grant = false" class="absolute top-2 right-4 text-gray-400 hover:text-white text-xl">✕</button>
+                    <h3 class="text-xl text-purple-400 font-bold mb-4 text-center">มอบแต้มทักษะ</h3>
+                    <p class="text-center text-sm text-gray-400 mb-4">มอบให้กับ: <span class="text-vic-gold">{{ grantData.target?.character_name }}</span></p>
+                    <div class="flex justify-center mb-6"><input type="number" v-model.number="grantData.amount" min="1" class="input-vic text-center text-3xl font-bold w-32 h-16 border-purple-800 text-purple-200 focus:border-purple-500"></div>
+                    <button @click="submitGrant" :disabled="loading || grantData.amount <= 0" class="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3 rounded border border-purple-600 shadow-lg disabled:opacity-50">ยืนยัน</button>
+                </div>
+            </div>
+
+            <div v-if="modals.create" class="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown p-6 rounded border-2 border-green-600 w-full max-w-lg relative shadow-2xl animate-fade-in">
+                    <button @click="modals.create = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+                    <h3 class="text-2xl text-green-500 font-bold mb-6">สร้าง{{ modalType === 'player' ? 'ผู้เล่น' : 'ศัตรู' }}ใหม่</h3>
+                    <div class="space-y-4">
+                        <div v-if="modalType === 'player'"><label class="text-xs text-gray-400">ชื่อจริง</label><input v-model="form.name" class="input-vic"></div>
+                        <div><label class="text-xs text-gray-400">ชื่อตัวละคร</label><input v-model="form.character_name" class="input-vic"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-xs text-gray-400">Pathway</label><input v-model="form.pathways" class="input-vic"></div>
+                            <div><label class="text-xs text-gray-400">Sequence</label><input v-model="form.sequence" class="input-vic"></div>
+                        </div>
+                        <div><label class="text-xs text-gray-400">Img URL</label><input v-model="form.character_img_url" class="input-vic"></div>
+                    </div>
+                    <button @click="submitCreate" :disabled="loading" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded mt-6 border border-green-500 shadow-lg disabled:opacity-50">ยืนยัน</button>
+                </div>
+            </div>
+
+            <div v-if="modals.edit" class="fixed inset-0 bg-black/90 z-[80] flex justify-center items-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown w-full max-w-4xl rounded border-2 border-blue-500 shadow-2xl h-[90vh] flex flex-col relative animate-fade-in">
+                    <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-black/20">
+                        <h3 class="text-xl text-blue-400 font-bold">แก้ไข: {{ form.character_name }}</h3>
+                        <button @click="modals.edit = false" class="text-gray-400 hover:text-white text-xl">✕</button>
+                    </div>
+                    <div class="flex border-b border-gray-700 bg-black/40">
+                        <button @click="editTab = 'general'" :class="editTab === 'general' ? 'active' : 'inactive'" class="tab-btn flex-1">ข้อมูลทั่วไป</button>
+                        <button @click="editTab = 'stats'" :class="editTab === 'stats' ? 'active' : 'inactive'" class="tab-btn flex-1">ค่าพลัง</button>
+                        <button @click="editTab = 'skills'" :class="editTab === 'skills' ? 'active' : 'inactive'" class="tab-btn flex-1">ทักษะ</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div v-if="editTab === 'general'" class="space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div v-if="isAdmin" class="col-span-full bg-blue-900/20 p-3 rounded border border-blue-500/50">
+                                    <label class="text-xs text-blue-300 block mb-1">🔗 เชื่อมต่อผู้เล่น (Auth ID)</label>
+                                    <div class="flex gap-2"><input v-model="form.auth_id" class="input-vic text-xs font-mono text-blue-200" placeholder="UUID"><button @click="form.auth_id = ''" class="text-xs text-red-400 underline">ล้างค่า</button></div>
+                                </div>
+                                <div v-if="modalType === 'player'"><label class="text-xs text-gray-400">ชื่อผู้เล่น</label><input v-model="form.name" class="input-vic"></div>
+                                <div><label class="text-xs text-gray-400">ชื่อตัวละคร</label><input v-model="form.character_name" class="input-vic"></div>
+                                <div><label class="text-xs text-gray-400">สัญชาติ</label><input v-model="form.nationality" class="input-vic"></div>
+                                <div><label class="text-xs text-gray-400">เพศ</label><input v-model="form.sex" class="input-vic"></div>
+                                <div><label class="text-xs text-gray-400">Pathway</label><input v-model="form.pathways" class="input-vic"></div>
+                                <div><label class="text-xs text-gray-400">Sequence</label><input v-model="form.sequence" class="input-vic"></div>
+                                <div class="col-span-full"><label class="text-xs text-gray-400">Img URL</label><input v-model="form.character_img_url" class="input-vic"></div>
+                                <div class="col-span-full"><label class="text-xs text-gray-400">Doc URL</label><input v-model="form.source_url" class="input-vic"></div>
+                            </div>
+                        </div>
+                        <div v-if="editTab === 'stats'">
+                            <div class="mb-4 text-center"><label class="text-lg text-red-500 font-bold block">HP</label><input v-model="form.hp" type="number" class="input-vic text-center text-2xl font-bold w-32 mx-auto"></div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                <div v-for="stat in statsConfig" :key="stat.key" class="bg-black/30 p-2 rounded border border-gray-700">
+                                    <div class="text-center text-blue-300 font-bold uppercase mb-2">{{ stat.label }}</div>
+                                    <div class="flex gap-1 items-center">
+                                        <input v-model.number="form[stat.key]" @input="calculateModifier(stat.key)" type="number" class="input-vic text-center text-sm">
+                                        <input v-model.number="form[stat.mod]" type="number" :readonly="!isAdmin" class="input-vic text-center text-sm bg-blue-900/30 border-blue-800">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="editTab === 'skills'">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+                                <div v-for="(label, key) in skillLabels" :key="key" class="flex items-center justify-between border-b border-gray-800 pb-1">
+                                    <span class="text-sm text-gray-300">{{ label }}</span>
+                                    <input v-model.number="formSkills[key]" type="number" class="w-16 bg-neutral-800 border border-gray-600 rounded px-1 text-right text-yellow-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-700 bg-black/20 flex justify-end gap-3">
+                        <button @click="modals.edit = false" :disabled="loading" class="px-4 py-2 text-gray-400 hover:text-white">ยกเลิก</button>
+                        <button @click="submitEdit" :disabled="loading" class="bg-blue-700 hover:bg-blue-600 text-white px-6 py-2 rounded font-bold shadow-lg">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="modals.embed" class="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-lg relative shadow-2xl animate-slide-up">
+                    <button @click="modals.embed = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+                    <h3 class="text-xl text-vic-gold font-bold mb-2">Embed Code</h3>
+                    <p class="text-sm text-gray-400 mb-4">คัดลอกโค้ดนี้ไปวางในเว็บไซต์ของคุณเพื่อแสดงการ์ดตัวละคร</p>
+                    <div class="bg-black/50 p-3 rounded border border-vic-brown mb-4 relative group">
+                        <code class="text-xs text-green-400 font-mono break-all block">{{ embedCode }}</code>
+                    </div>
+                    <div class="flex justify-end gap-2"><button @click="copyEmbedCode" class="btn-gold text-sm w-full">📋 คัดลอกโค้ด</button></div>
+                </div>
+            </div>
+
+            <div v-if="modals.confirm" class="fixed inset-0 bg-black/90 z-[95] flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-vic-darkbrown p-6 rounded border-2 w-full max-w-md relative shadow-2xl text-center"
+                     :class="modals.confirm.type === 'delete' ? 'border-red-600' : 'border-vic-gold'">
+                    <h3 class="text-2xl font-bold mb-4" :class="modals.confirm.type === 'delete' ? 'text-red-500' : 'text-vic-gold'">{{ modals.confirm.title }}</h3>
+                    <p class="text-gray-300 mb-6">{{ modals.confirm.message }}</p>
+                    <div class="flex gap-4 justify-center">
+                        <button @click="modals.confirm = null" :disabled="loading" class="px-6 py-2 border border-gray-600 text-gray-400 rounded hover:bg-gray-800">ยกเลิก</button>
+                        <button @click="modals.confirm.onConfirm" :disabled="loading" 
+                                class="px-6 py-2 rounded text-white font-bold shadow-lg"
+                                :class="modals.confirm.type === 'delete' ? 'bg-red-900 border border-red-600 hover:bg-red-800' : 'bg-green-800 border border-green-600 hover:bg-green-700'">
+                            {{ modals.confirm.confirmText }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="selectedCharacter" class="fixed inset-0 bg-black/90 z-[70] flex justify-center items-center p-4 backdrop-blur-md" @click.self="selectedCharacter = null">
+                <div class="bg-vic-darkbrown w-full max-w-3xl p-8 rounded border-2 border-vic-gold shadow-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in">
+                    <button @click="selectedCharacter = null" class="absolute top-4 right-4 text-2xl text-vic-gold hover:text-white">✕</button>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="w-full md:w-1/3 text-center">
+                            <img :src="selectedCharacter.character_img_url || 'https://via.placeholder.com/300'" class="w-full rounded border border-vic-gold mb-4 shadow-lg object-cover">
+                            <div class="p-3 bg-black/40 rounded border border-vic-brown inline-block min-w-[120px]">
+                                <span class="text-gray-400 text-xs uppercase block">HP</span>
+                                <div class="text-4xl text-red-500 font-bold">{{ selectedCharacter.hp }}</div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-2/3">
+                            <h2 class="text-4xl text-vic-gold font-bold mb-1 font-serif">{{ selectedCharacter.character_name }}</h2>
+                            <p class="text-gray-400 italic mb-6 border-b border-vic-brown pb-2">{{ selectedCharacter.nationality || '-' }} | {{ selectedCharacter.sex || '-' }} | {{ selectedCharacter.pathways }}</p>
+                            
+                            <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-6">
+                                <div v-for="stat in statsConfig" :key="stat.key" class="bg-neutral-800 p-2 rounded border border-vic-brown text-center">
+                                    <div class="text-[10px] text-gray-400 uppercase">{{ stat.label }}</div>
+                                    <div class="text-lg font-bold text-white">{{ selectedCharacter[stat.key] || 10 }}</div>
+                                    <div class="text-xs font-bold" :class="(selectedCharacter[stat.mod]||0) >= 0 ? 'text-green-400' : 'text-red-400'">
+                                        {{ (selectedCharacter[stat.mod]||0) >= 0 ? '+' : '' }}{{ selectedCharacter[stat.mod]||0 }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 class="text-lg text-vic-gold border-b border-vic-gold mb-3 font-bold">Skills</h3>
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                                <div v-for="(val, key) in selectedSkills" :key="key" class="flex justify-between border-b border-white/10 py-1">
+                                    <span class="text-gray-300">{{ skillLabels[key] || key }}</span>
+                                    <span class="font-bold" :class="val > 0 ? 'text-green-400' : 'text-gray-600'">{{ val > 0 ? '+' : ''}}{{ val }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
