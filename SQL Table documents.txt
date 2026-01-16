@@ -1,0 +1,183 @@
+ฐานข้อมูลที่มีอยู่แล้ว
+
+create table public.players (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  auth_id uuid null,
+  name text null,
+  character_name text null,
+  nationality text null,
+  sex text null,
+  pathways text null,
+  sequence text null,
+  str integer null default 10,
+  str_mod integer null default 0,
+  agi integer null default 10,
+  agi_mod integer null default 0,
+  int_stat integer null default 10,
+  int_mod integer null default 0,
+  dex integer null default 10,
+  dex_mod integer null default 0,
+  con integer null default 10,
+  con_mod integer null default 0,
+  wis integer null default 10,
+  wis_mod integer null default 0,
+  cha integer null default 10,
+  cha_mod integer null default 0,
+  hp integer null default 10,
+  character_img_url text null,
+  source_url text null,
+  role text null default 'player'::text,
+  status text null default 'active'::text,
+  created_at timestamp with time zone null default timezone ('utc'::text, now()),
+  skill_points integer null default 0,
+  money integer null default 0,
+  bank_balance integer null default 0,
+  constraint players_pkey primary key (id),
+  constraint players_auth_id_fkey foreign KEY (auth_id) references auth.users (id)
+) TABLESPACE pg_default;
+
+create table public.player_skills (
+  player_id uuid not null,
+  athletics integer null default 0,
+  acrobatics integer null default 0,
+  sleight_of_hand integer null default 0,
+  stealth integer null default 0,
+  arcana integer null default 0,
+  history integer null default 0,
+  investigation integer null default 0,
+  nature integer null default 0,
+  religion integer null default 0,
+  animal_handling integer null default 0,
+  insight integer null default 0,
+  medicine integer null default 0,
+  perception integer null default 0,
+  survival integer null default 0,
+  deception integer null default 0,
+  intimidation integer null default 0,
+  performance integer null default 0,
+  persuasion integer null default 0,
+  constraint player_skills_pkey primary key (player_id),
+  constraint player_skills_player_id_fkey foreign KEY (player_id) references players (id)
+) TABLESPACE pg_default;
+
+
+create table public.enemies (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  character_name text null,
+  nationality text null,
+  sex text null,
+  pathways text null,
+  sequence text null,
+  str integer null default 10,
+  str_mod integer null default 0,
+  agi integer null default 10,
+  agi_mod integer null default 0,
+  int_stat integer null default 10,
+  int_mod integer null default 0,
+  dex integer null default 10,
+  dex_mod integer null default 0,
+  con integer null default 10,
+  con_mod integer null default 0,
+  wis integer null default 10,
+  wis_mod integer null default 0,
+  cha integer null default 10,
+  cha_mod integer null default 0,
+  hp integer null default 10,
+  character_img_url text null,
+  status text null default 'active'::text,
+  constraint enemies_pkey primary key (id)
+) TABLESPACE pg_default;
+
+create table public.enemy_skills (
+  enemy_id uuid not null,
+  athletics integer null default 0,
+  acrobatics integer null default 0,
+  sleight_of_hand integer null default 0,
+  stealth integer null default 0,
+  arcana integer null default 0,
+  history integer null default 0,
+  investigation integer null default 0,
+  nature integer null default 0,
+  religion integer null default 0,
+  animal_handling integer null default 0,
+  insight integer null default 0,
+  medicine integer null default 0,
+  perception integer null default 0,
+  survival integer null default 0,
+  deception integer null default 0,
+  intimidation integer null default 0,
+  performance integer null default 0,
+  persuasion integer null default 0,
+  constraint enemy_skills_pkey primary key (enemy_id),
+  constraint enemy_skills_enemy_id_fkey foreign KEY (enemy_id) references enemies (id)
+) TABLESPACE pg_default;
+
+create table public.map_positions (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  entity_id uuid null,
+  entity_type text null,
+  map_name text null,
+  position_x double precision null,
+  position_y double precision null,
+  last_updated timestamp with time zone null default timezone ('utc'::text, now()),
+  constraint map_positions_pkey primary key (id)
+) TABLESPACE pg_default;
+
+create table public.pathways (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  name text not null,
+  goo_group text null,
+  created_at timestamp with time zone null default timezone ('utc'::text, now()),
+  constraint pathways_pkey primary key (id),
+  constraint pathways_name_key unique (name)
+) TABLESPACE pg_default;
+
+create table public.sequences (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  pathway_id uuid not null,
+  seq_number integer not null,
+  title text not null,
+  rank_group text null,
+  constraint sequences_pkey primary key (id),
+  constraint sequences_pathway_id_fkey foreign KEY (pathway_id) references pathways (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create table public.items (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  name text not null,
+  description text null,
+  type text not null,
+  price_buy integer null default 0,
+  price_sell integer null default 0,
+  image_url text null default 'https://via.placeholder.com/100?text=Item'::text,
+  effects jsonb null default '{}'::jsonb,
+  created_at timestamp with time zone null default timezone ('utc'::text, now()),
+  constraint items_pkey primary key (id),
+  constraint items_type_check check (
+    (
+      type = any (
+        array[
+          'consumable'::text,
+          'equipment'::text,
+          'cosmetic'::text,
+          'material'::text,
+          'key'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create table public.inventory (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  player_id uuid not null,
+  item_id uuid not null,
+  quantity integer null default 1,
+  is_equipped boolean null default false,
+  updated_at timestamp with time zone null default timezone ('utc'::text, now()),
+  constraint inventory_pkey primary key (id),
+  constraint inventory_unique_item_per_player unique (player_id, item_id),
+  constraint inventory_item_id_fkey foreign KEY (item_id) references items (id) on delete CASCADE,
+  constraint inventory_player_id_fkey foreign KEY (player_id) references players (id) on delete CASCADE,
+  constraint inventory_quantity_check check ((quantity >= 0))
+) TABLESPACE pg_default;
