@@ -38,17 +38,16 @@
                 <img :src="char.character_img_url || 'https://via.placeholder.com/400'" class="w-full h-full object-cover object-top">
                 <div class="absolute inset-0 bg-gradient-to-t from-vic-darkbrown via-transparent to-transparent"></div>
                 
-                <div class="absolute bottom-3 left-4 right-4">
-                                    <h3 class="text-xl font-bold text-vic-gold truncate font-serif">{{ player.character_name }}</h3>
-                                    
-                                    <div class="flex gap-2 my-1.5">
-                                        <span class="text-[9px] bg-red-900/80 text-white px-1.5 py-0.5 rounded border border-red-500/30 font-bold">HP {{ player.hp }}</span>
-                                        <span class="text-[9px] bg-orange-900/80 text-white px-1.5 py-0.5 rounded border border-orange-500/30 font-bold">ATK {{ player.atk || 0 }}</span>
-                                        <span class="text-[9px] bg-blue-900/80 text-white px-1.5 py-0.5 rounded border border-blue-500/30 font-bold">AC {{ player.ac || 10 }}</span>
-                                    </div>
-
-                                    <p class="text-[10px] text-gray-300 uppercase tracking-tighter">{{ player.pathways }} | Seq {{ player.sequence }}</p>
-                                </div>
+                <div class="absolute bottom-2 left-4 right-4 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-bold text-vic-gold font-serif leading-none drop-shadow-md">{{ char.character_name }}</h1>
+                        <p class="text-xs text-gray-300 mt-1">{{ char.pathways }} (Seq {{ char.sequence }})</p>
+                    </div>
+                    <div class="bg-black/60 border border-red-500/50 px-2 py-1 rounded text-center backdrop-blur-sm">
+                        <div class="text-[10px] text-gray-400 uppercase">HP</div>
+                        <div class="text-xl font-bold text-red-500 leading-none">{{ char.hp }}</div>
+                    </div>
+                </div>
             </div>
 
             <div class="p-4 overflow-y-auto space-y-4 custom-scroll">
