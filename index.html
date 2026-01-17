@@ -293,23 +293,18 @@
                       </div>
 
                       <!-- Skills preview (if available on currentUser or separate module) -->
-                      <div class="mt-6 border-t border-vic-gold/20 pt-6">
-                            <h3 class="text-xl text-vic-gold font-serif mb-4 flex items-center gap-2 font-bold uppercase tracking-widest">
-                                <span>📜</span> Skill Sets
-                            </h3>
-                            
-                            <div v-if="Object.keys(currentUserSkills).length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                <div v-for="(val, key) in currentUserSkills" :key="key" 
-                                     class="flex justify-between items-center bg-black/40 p-2 rounded border border-vic-brown/50 shadow-inner">
-                                    <span class="text-gray-400 text-[10px] uppercase font-bold truncate mr-2">{{ skillLabels[key] || key }}</span>
-                                    <span class="text-vic-gold font-bold text-sm">{{ val > 0 ? '+' : '' }}{{ val }}</span>
-                                </div>
-                            </div>
-                            
-                            <div v-else class="text-gray-500 text-sm italic py-4 text-center bg-black/20 rounded border border-dashed border-gray-700">
-                                ไม่พบข้อมูลสกิล กรุณาติดต่อ Admin เพื่อสร้างฐานข้อมูลสกิล
-                            </div>
+                      <div class="mb-2">
+                        <h3 class="text-sm text-vic-gold uppercase font-bold mb-2">สกิล </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div v-for="(label, key) in skillLabels" :key="key" class="bg-black/20 p-2 rounded border border-white/5 text-[12px] flex justify-between">
+                            <span class="truncate text-gray-300">{{ label }}</span>
+                            <!-- ถ้า currentUser มีค่า skill fields ให้แสดง มิฉะนั้นจะโชว์ '-' -->
+                            <span class="font-mono font-bold" :class="(currentUser?.[key] > 0) ? 'text-green-400' : 'text-gray-600'">
+                              {{ currentUser?.[key] ? (currentUser[key] > 0 ? '+'+currentUser[key] : currentUser[key]) : '-' }}
+                            </span>
+                          </div>
                         </div>
+                      </div>
 
                     </div>
 
