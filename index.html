@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Victorian Homebrew Manager</title>
+    <title>Whisper of the Shadow</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,8 +99,8 @@
             
             <div class="w-full h-64 bg-cover bg-center relative border-b-4 border-vic-gold" :style="{ backgroundImage: 'url(' + headerImg + ')' }">
                 <div class="absolute inset-0 bg-black/60 flex items-center justify-center flex-col">
-                    <h1 class="text-5xl md:text-6xl text-vic-gold font-bold drop-shadow-lg tracking-wider font-serif">THE CAMPAIGN</h1>
-                    <p class="text-vic-cream/80 mt-2 text-xl font-serif">บันทึกการผจญภัยยุควิคตอเรียน</p>
+                    <h1 class="text-5xl md:text-6xl text-vic-gold font-bold drop-shadow-lg tracking-wider font-serif">Whisper of the Shadow</h1>
+                    <p class="text-vic-cream/80 mt-2 text-xl font-serif">เสียงเพรียกแห่งเงามืด</p>
                 </div>
                 
                 <div class="absolute top-4 right-4 flex items-center gap-3">
@@ -211,7 +211,7 @@
                 <div v-if="currentView === 'shop'" class="animate-fade-in">
                     <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
                         <div>
-                            <h2 class="text-2xl text-vic-gold font-bold font-serif">ร้านค้า (Marketplace)</h2>
+                            <h2 class="text-2xl text-vic-gold font-bold font-serif">ร้านค้า</h2>
                             <p class="text-xs text-gray-400">เงินคงเหลือ: <span class="text-yellow-500 font-bold text-lg">฿{{ currentUser.money }}</span></p>
                         </div>
                         <button v-if="isAdmin" @click="openItemModal()" class="btn-gold text-sm">+ เพิ่มสินค้า</button>
@@ -252,7 +252,7 @@
             <div v-if="modals.transfer" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-purple-500 w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.transfer = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
-                    <h3 class="text-xl text-purple-400 font-bold mb-4">ส่งของขวัญ (Transfer Item)</h3>
+                    <h3 class="text-xl text-purple-400 font-bold mb-4">ส่งของ</h3>
                     <div class="flex items-center gap-3 bg-black/30 p-2 rounded border border-gray-700 mb-4">
                         <img :src="transferData.item.items.image_url" class="w-10 h-10 rounded border border-gray-600">
                         <div><div class="text-white font-bold">{{ transferData.item.items.name }}</div><div class="text-xs text-gray-400">มีอยู่: {{ transferData.item.quantity }} ชิ้น</div></div>
@@ -290,7 +290,7 @@
             <div v-if="modals.grantMoney" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-yellow-500 w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.grantMoney = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
-                    <h3 class="text-xl text-yellow-500 font-bold mb-2 text-center">💸 Admin Grant Money</h3>
+                    <h3 class="text-xl text-yellow-500 font-bold mb-2 text-center">💸 พลังแห่งเงินตรา</h3>
                     <p class="text-sm text-center text-gray-400 mb-4">เสกเงินเข้าธนาคารให้: <span class="text-white font-bold">{{ grantMoneyData.target?.character_name }}</span></p>
 
                     <input type="number" v-model.number="grantMoneyData.amount" min="1" class="input-vic mb-6 text-center text-3xl font-bold border-yellow-600 text-yellow-400">
@@ -310,10 +310,10 @@
                         <div class="flex gap-2">
                             <div class="flex-1"><label class="text-xs text-gray-400">ประเภท</label>
                                 <select v-model="formItem.type" class="input-vic">
-                                    <option value="consumable">Consumable</option>
-                                    <option value="equipment">Equipment</option>
-                                    <option value="material">Material</option>
-                                    <option value="key">Key Item</option>
+                                    <option value="consumable">ใช้งาน</option>
+                                    <option value="equipment">สวมใส่</option>
+                                    <option value="material">วัตถุดิบ</option>
+                                    <option value="key">ไอเทมระบบ</option>
                                 </select>
                             </div>
                             <div class="flex-1"><label class="text-xs text-gray-400">รูปภาพ URL</label><input v-model="formItem.image_url" class="input-vic"></div>
@@ -354,4 +354,5 @@
     <script src="economy.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
