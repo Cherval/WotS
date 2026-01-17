@@ -142,8 +142,27 @@
                                 <div><span class="block text-[10px] text-vic-gold uppercase">ลำดับ</span> <span class="text-lg">{{ currentUser.sequence }}</span></div>
                             </div>
                             <div class="mt-6 flex gap-4">
-                                <div class="bg-red-900/20 border border-red-900/50 p-3 rounded min-w-[100px] text-center"><div class="text-xs text-red-400 uppercase">HP</div><div class="text-2xl font-bold text-red-500">{{ currentUser.hp }}</div></div>
-                                <div class="bg-yellow-900/20 border border-yellow-600/50 p-3 rounded min-w-[100px] text-center"><div class="text-xs text-yellow-400 uppercase">เงินสด</div><div class="text-2xl font-bold text-yellow-500">฿{{ currentUser.money }}</div></div>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-red-950/30 border border-red-900 p-3 rounded text-center shadow-lg">
+                                <div class="text-[10px] text-red-400 uppercase font-bold tracking-widest mb-1">Health</div>
+                                <div class="text-3xl font-bold text-red-500 font-serif">{{ currentUser?.hp }}</div>
+                            </div>
+                            
+                            <div class="bg-orange-950/30 border border-orange-900 p-3 rounded text-center shadow-lg">
+                                <div class="text-[10px] text-orange-400 uppercase font-bold tracking-widest mb-1">Attack</div>
+                                <div class="text-3xl font-bold text-orange-500 font-serif">{{ currentUser?.atk || 0 }}</div>
+                            </div>
+                            
+                            <div class="bg-blue-950/30 border border-blue-900 p-3 rounded text-center shadow-lg">
+                                <div class="text-[10px] text-blue-400 uppercase font-bold tracking-widest mb-1">Armor Class</div>
+                                <div class="text-3xl font-bold text-blue-300 font-serif">{{ currentUser?.ac || 10 }}</div>
+                            </div>
+                            
+                            <div class="bg-yellow-950/30 border border-yellow-600/50 p-3 rounded text-center shadow-lg">
+                                <div class="text-[10px] text-yellow-400 uppercase font-bold tracking-widest mb-1">Cash</div>
+                                <div class="text-3xl font-bold text-yellow-500 font-serif">฿{{ currentUser?.money }}</div>
+                            </div>
+                        </div>
                             </div>
                          </div>
                      </div>
