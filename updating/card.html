@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Card</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { vic: { black: '#1a1a1a', gold: '#d4af37', cream: '#f5e6c8', brown: '#5d4037', darkbrown: '#3e2723' } },
+                    fontFamily: { serif: ['Merriweather', 'serif'], thai: ['Sarabun', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: transparent; color: #f5e6c8; font-family: 'Sarabun', sans-serif; }
+        /* ซ่อน Scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak class="p-2 h-screen flex items-center justify-center">
+        
+        <div v-if="loading" class="text-vic-gold animate-pulse font-serif tracking-widest">SUMMONING...</div>
+
+        <div v-else-if="char" class="w-full max-w-md bg-vic-darkbrown border-2 border-vic-gold rounded-lg shadow-2xl overflow-hidden relative flex flex-col max-h-[98vh]">
+            
+            <div class="h-48 relative shrink-0">
+                <img :src="char.character_img_url || 'https://via.placeholder.com/400'" class="w-full h-full object-cover object-top">
+                <div class="absolute inset-0 bg-gradient-to-t from-vic-darkbrown via-transparent to-transparent"></div>
+                
+                <div class="absolute bottom-2 left-4 right-4 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-bold text-vic-gold font-serif leading-none drop-shadow-md">{{ char.character_name }}</h1>
+                        <p class="text-xs text-gray-300 mt-1">{{ char.pathways }} (Seq {{ char.sequence }})</p>
+                    </div>
+                    <div class="bg-black/60 border border-red-500/50 px-2 py-1 rounded text-center backdrop-blur-sm">
+                        <div class="text-[10px] text-gray-400 uppercase">HP</div>
+                        <div class="text-xl font-bold text-red-500 leading-none">{{ char.hp }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 overflow-y-auto space-y-4 custom-scroll">
+                
+                <div class="grid grid-cols-6 gap-1">
+                    <div v-for="stat in statsConfig" :key="stat.key" class="bg-black/30 p-1 rounded border border-vic-brown/50 text-center">
+                        <div class="text-[8px] text-gray-500 uppercase tracking-wider">{{ stat.label }}</div>
+                        <div class="text-sm font-bold text-white">{{ char[stat.key] }}</div>
+                        <div class="text-[10px] font-bold" :class="getMod(char[stat.key]) >= 0 ? 'text-green-400' : 'text-red-400'">
+                            {{ getMod(char[stat.key]) >= 0 ? '+' : '' }}{{ getMod(char[stat.key]) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-vic-gold uppercase border-b border-vic-gold/30 mb-2 pb-1">Proficiencies</h3>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <div v-for="(val, key) in skills" :key="key" class="flex justify-between border-b border-white/5 py-0.5">
+                            <span class="text-gray-400 truncate pr-2">{{ skillLabels[key] || key }}</span>
+                            <span class="font-mono font-bold" :class="val > 0 ? 'text-green-400' : 'text-gray-600'">
+                                {{ val > 0 ? '+' : ''}}{{ val }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2 border-t border-vic-brown/30">
+                    <p class="text-[10px] text-gray-500 italic">{{ char.name }} | {{ char.nationality }} | {{ char.sex }}</p>
+                    <a v-if="char.source_url" :href="char.source_url" target="_blank" class="text-[10px] text-blue-400 hover:text-blue-300 mt-1 block">View Full History</a>
+                </div>
+            </div>
+            
+            <div class="absolute top-2 right-2 opacity-50 hover:opacity-100 transition">
+                <a href="#" target="_blank" class="text-[10px] bg-black/50 px-2 py-0.5 rounded text-vic-gold border border-vic-gold/30">Victorian RPG</a>
+            </div>
+        </div>
+
+        <div v-else class="text-red-500 text-center p-4 border border-red-900 rounded bg-black/50">
+            <h2 class="text-xl font-bold">404</h2>
+            <p class="text-sm">Character not found.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // ⚠️ ใส่ Key ของคุณที่นี่เหมือนเดิม
+        const supabaseUrl = 'https://kllwutyulbppgqgwydno.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsbHd1dHl1bGJwcGdxZ3d5ZG5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0ODQ1MzUsImV4cCI6MjA4NDA2MDUzNX0.ohqUm1pVR9FtWagNie6u8TiNmGOuH78H7WkIKMm2ALM'
+        const sb = supabase.createClient(supabaseUrl, supabaseKey)
+        const { createApp, ref, onMounted } = Vue
+
+        createApp({
+            setup() {
+                const loading = ref(true)
+                const char = ref(null)
+                const skills = ref({})
+
+                const statsConfig = [
+                    { label: 'STR', key: 'str' }, { label: 'AGI', key: 'agi' }, { label: 'INT', key: 'int_stat' },
+                    { label: 'DEX', key: 'dex' }, { label: 'CON', key: 'con' }, { label: 'WIS', key: 'wis' }, { label: 'CHA', key: 'cha' }
+                ]
+                
+                // Skill Labels (Mapping) - ก๊อปปี้มาจาก script.js หลัก
+                const skillLabels = {
+                    athletics: 'Athletics', acrobatics: 'Acrobatics', sleight_of_hand: 'Sleight of Hand',
+                    stealth: 'Stealth', arcana: 'Arcana', history: 'History', investigation: 'Investigation',
+                    nature: 'Nature', religion: 'Religion', animal_handling: 'Animal Handling', insight: 'Insight',
+                    medicine: 'Medicine', perception: 'Perception', survival: 'Survival', deception: 'Deception',
+                    intimidation: 'Intimidation', performance: 'Performance', persuasion: 'Persuasion'
+                }
+
+                function getMod(score) { return Math.floor(((score || 10) - 10) / 2) }
+
+                async function fetchChar() {
+                    const params = new URLSearchParams(window.location.search)
+                    const id = params.get('id')
+                    if (!id) { loading.value = false; return; }
+
+                    // Fetch Player
+                    let { data: pData } = await sb.from('players').select('*').eq('id', id).single()
+                    if (pData) {
+                        char.value = pData
+                        // Fetch Skills
+                        let { data: sData } = await sb.from('player_skills').select('*').eq('player_id', id).single()
+                        if (sData) {
+                            const { player_id, id, created_at, ...rest } = sData
+                            skills.value = rest
+                        }
+                    }
+                    loading.value = false
+                }
+
+                onMounted(() => { fetchChar() })
+
+                return { loading, char, skills, statsConfig, skillLabels, getMod }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
