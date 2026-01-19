@@ -8,6 +8,10 @@
             --ken-text-muted: #6b7280;
             --ken-bg-soft: #f8fafc;
             --ken-white: #ffffff;
+            --paper-bg: #ffffff;
+            --text-dark: #2d3436;
+            --highlight-orange: #ff8c00;
+            --shadow-color: rgba(0, 0, 0, 0.1);
         }
 
         .ken-wrapper {
@@ -202,9 +206,9 @@
         /* ส่วนของปากกาลูกลื่น */
         .ken2-pen-overlay {
             position: absolute;
-            width: 200px; /* ปรับขนาดรูปปากกา */
-            bottom: -30px;
-            right: -40px;
+            bottom: -40px !important;
+            right: -50px !important;
+            width: 180px !important;
             z-index: 10;
             transform: rotate(15deg);
             pointer-events: none; /* เพื่อให้ไม่ขวางการคลิก */
