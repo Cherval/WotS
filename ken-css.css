@@ -201,7 +201,7 @@
         }
 
         /* ตัวหนาหรือไฮไลท์สีส้ม */
-        //*strong, b, .ken2-highlight {
+        .ken2-content-scroll strong, b, .ken2-highlight {
             color: var(--highlight-orange);
             font-weight: 700;
         }
