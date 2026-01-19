@@ -1,0 +1,137 @@
+/* CSS สำหรับนำไปแยกไฟล์บน GitHub 
+           ทุก Class จะขึ้นต้นด้วย ken- เพื่อป้องกัน Style Conflict
+        */
+        :root {
+            --ken-primary: #6366f1;
+            --ken-secondary: #a855f7;
+            --ken-text-main: #1f2937;
+            --ken-text-muted: #6b7280;
+            --ken-bg-soft: #f8fafc;
+            --ken-white: #ffffff;
+        }
+
+        .ken-wrapper {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Sarabun', 'Tahoma', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .ken-container {
+            max-width: 650px;
+            width: 100%;
+        }
+
+        /* Header Section */
+        .ken-header-card {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: var(--ken-white);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .ken-title {
+            margin: 0;
+            font-size: 32px;
+            background: linear-gradient(to right, var(--ken-primary), var(--ken-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .ken-subtitle {
+            margin: 8px 0 20px;
+            font-size: 18px;
+            color: var(--ken-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .ken-intro {
+            font-style: italic;
+            color: var(--ken-text-muted);
+            line-height: 1.7;
+            padding: 0 20px;
+        }
+
+        /* Wishlist Stack */
+        .ken-list-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ใช้ความเจาะจงสูงเพื่อไม่ให้กระทบรายละเอียดอื่นในเว็บ */
+        .ken-list-stack details.ken-item {
+            background: var(--ken-white);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+
+        .ken-list-stack details.ken-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+        }
+
+        .ken-list-stack summary.ken-summary {
+            list-style: none;
+            padding: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--ken-text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            outline: none;
+        }
+
+        .ken-list-stack summary.ken-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .ken-num {
+            color: var(--ken-primary);
+            margin-right: 12px;
+            font-weight: 800;
+        }
+
+        .ken-btn-badge {
+            font-size: 12px;
+            background: #f3f4f6;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: var(--ken-text-muted);
+            font-weight: normal;
+        }
+
+        /* Content Area */
+        .ken-details-content {
+            padding: 0 20px 20px 52px;
+            color: var(--ken-text-muted);
+            font-size: 15px;
+            line-height: 1.8;
+            border-top: 1px solid #f8fafc;
+            animation: kenFadeIn 0.3s ease-out;
+        }
+
+        @keyframes kenFadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ken-footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 13px;
+            color: var(--ken-text-muted);
+        }
