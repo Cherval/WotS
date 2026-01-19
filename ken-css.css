@@ -135,3 +135,95 @@
             font-size: 13px;
             color: var(--ken-text-muted);
         }
+
+/* Container หลัก */
+        .ken2-rp-wrapper {
+            position: relative;
+            max-width: 600px;
+            width: 90%;
+            padding: 50px 20px;
+        }
+
+        /* ส่วนที่เป็นกระดาษวางเฉียง */
+        .ken2-paper-box {
+            background-color: var(--paper-bg);
+            padding: 40px;
+            color: var(--text-dark);
+            box-shadow: 10px 10px 25px var(--shadow-color), 
+                        -5px -5px 15px rgba(255, 255, 255, 0.5);
+            transform: rotate(-1.5deg); /* วางพาดเฉียง */
+            border-radius: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ส่วนเนื้อหาที่เลื่อนได้ */
+        .ken2-content-scroll {
+            height: 400px; /* กำหนดความสูง */
+            overflow-y: auto; /* เปิดสกรอลบาร์ */
+            overflow-x: hidden;
+            padding-right: 15px;
+            line-height: 1.8;
+            text-align: justify;
+        }
+
+        /* ปรับแต่งสกรอลบาร์ */
+        .ken2-content-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ken2-content-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .ken2-content-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        .ken2-content-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--highlight-orange);
+        }
+
+        /* หัวข้อ */
+        .ken2-rp-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            color: var(--text-dark);
+            transform: rotate(0.5deg);
+        }
+
+        /* ตัวหนาหรือไฮไลท์สีส้ม */
+        strong, b, .ken2-highlight {
+            color: var(--highlight-orange);
+            font-weight: 700;
+        }
+
+        /* ส่วนของปากกาลูกลื่น */
+        .ken2-pen-overlay {
+            position: absolute;
+            width: 200px; /* ปรับขนาดรูปปากกา */
+            bottom: -30px;
+            right: -40px;
+            z-index: 10;
+            transform: rotate(15deg);
+            pointer-events: none; /* เพื่อให้ไม่ขวางการคลิก */
+        }
+
+        .ken2-pen-overlay img {
+            width: 100%;
+            filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.2));
+        }
+
+        /* จุดเด่นเล็กๆ เหมือนรอยแม็กหรือกระดาษโน้ต */
+        .ken2-paper-box::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 15px;
+            background: rgba(255, 140, 0, 0.2);
+            border-radius: 2px;
+        }
