@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTT System - Hart's Edition</title>
+    <title>ระบบแผนที่กิจกรรม | Kendrick's Code</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -38,7 +38,7 @@
         body { 
             background-color: #0c0a09; 
             color: #e7e5e4; 
-            overflow: hidden; 
+            min-height: 100vh;
             background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
             background-size: 40px 40px;
         }
@@ -48,36 +48,32 @@
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #d97706; }
 
-        /* Map Wrapper */
         .map-viewport {
             position: relative;
             flex: 1;
             overflow: auto;
-            background-[#050505];
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #050505;
+            display: block;
         }
 
         .map-wrapper {
-            padding: 60px; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: block;
+            margin: 40px auto; 
+            position: relative;
+            transition: width 0.3s, height 0.3s;
         }
 
-        /* Fixed Square Aspect Ratio */
         .map-container {
             width: 1024px;   
             height: 1024px;
-            aspect-ratio: 1 / 1;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             background-size: cover;
             background-position: center;
             box-shadow: 0 0 100px rgba(0,0,0,1);
-            transform-origin: center center;
+            transform-origin: top left;
             border: 1px solid rgba(217, 119, 6, 0.3);
-            flex-shrink: 0;
         }
 
         .grid-overlay {
@@ -167,21 +163,21 @@
             animation: fadeIn 0.4s ease-out forwards;
         }
         
-        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d97706; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="font-body">
 
-    <div id="app" class="min-h-screen flex flex-col font-body">
+    <div id="app" class="min-h-screen flex flex-col">
 
         <!-- Loading Screen -->
-        <div v-if="loading && maps.length === 0" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dnd-bg">
+        <div v-if="loading && maps.length === 0" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-dnd-bg">
             <div class="relative">
                 <i class="ph ph-sword animate-bounce text-6xl text-dnd-gold"></i>
                 <i class="ph ph-spinner animate-spin text-8xl text-dnd-gold/20 absolute -inset-2"></i>
             </div>
-            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">Preparing Realm</p>
+            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">กำลังโหลดแผนที่</p>
         </div>
 
         <!-- Notification -->
@@ -191,10 +187,10 @@
         </div>
 
         <!-- Landing Page -->
-        <div v-if="!loading && currentView === 'landing'" class="container mx-auto px-4 py-12 animate-fade-in h-screen overflow-y-auto custom-scroll">
+        <div v-if="!loading && currentView === 'landing'" class="container mx-auto px-4 py-12 animate-fade-in flex-1 overflow-y-auto custom-scroll">
             <header class="text-center mb-12">
                 <h1 class="text-6xl font-fantasy text-dnd-gold drop-shadow-2xl mb-4">Adventure Maps</h1>
-                <p class="text-stone-500 uppercase tracking-widest text-sm">Select a location to explore the unknown</p>
+                <p class="text-stone-500 uppercase tracking-widest text-sm text-balance">เลือกแผนที่เพื่อสำรวจ</p>
                 
                 <div class="max-w-md mx-auto mt-8 relative">
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 text-xl"></i>
@@ -203,7 +199,7 @@
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12">
                 <div v-for="map in filteredMaps" :key="map.map_id" @click="selectMap(map)"
                      class="group bg-dnd-card border-2 border-stone-800 rounded-2xl overflow-hidden cursor-pointer hover:border-dnd-gold transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                     <div class="h-56 overflow-hidden bg-stone-900 relative">
@@ -211,7 +207,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-dnd-card via-transparent to-transparent opacity-60"></div>
                     </div>
                     <div class="p-6">
-                        <h3 class="text-2xl font-fantasy text-dnd-gold mb-2">{{ map.name }}</h3>
+                        <h3 class="text-2xl font-fantasy text-dnd-gold mb-2 leading-tight">{{ map.name }}</h3>
                         <p class="text-stone-400 text-sm line-clamp-2 leading-relaxed">{{ map.description }}</p>
                     </div>
                 </div>
@@ -219,43 +215,44 @@
         </div>
 
         <!-- Map View -->
-        <div v-if="currentView === 'map'" class="flex-1 flex flex-col h-screen overflow-hidden animate-fade-in">
+        <div v-if="currentView === 'map'" class="flex-1 flex flex-col h-[100dvh] overflow-hidden animate-fade-in bg-black">
             
             <!-- Dynamic Header -->
             <div v-if="!isEmbedMode" class="bg-dnd-dark border-b border-stone-800 p-3 flex justify-between items-center z-50 shadow-2xl shrink-0">
-                <div class="flex items-center space-x-3">
-                    <button @click="goHome" class="p-2 text-stone-500 hover:text-dnd-gold transition-all hover:bg-stone-800 rounded-lg">
-                        <i class="ph ph-caret-left-bold text-2xl"></i>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- [FIXED] ปุ่มย้อนกลับแบบมีข้อความชัดเจน -->
+                    <button @click="goHome" class="flex items-center px-3 py-2 text-stone-400 hover:text-dnd-gold transition-all hover:bg-stone-800 rounded-lg group">
+                        <i class="ph ph-caret-left-bold text-2xl mr-1"></i>
+                        <span class="text-sm font-bold uppercase tracking-wider">กลับหน้าหลัก</span>
                     </button>
-                    <div>
-                        <h2 class="font-fantasy text-lg text-dnd-gold leading-tight">{{ selectedMap.name }}</h2>
-                        <p class="text-[10px] text-stone-500 uppercase tracking-tighter">VTT Control System</p>
+                    <div class="h-6 w-px bg-stone-800 mx-1 hidden sm:block"></div>
+                    <div class="hidden lg:block">
+                        <h2 class="font-fantasy text-base lg:text-lg text-dnd-gold leading-tight truncate max-w-[200px]">{{ selectedMap.name }}</h2>
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1 sm:space-x-2">
                     <button @click="fetchAllData" :class="{'animate-spin': loading}" class="p-2 text-stone-400 hover:text-dnd-gold transition-all">
                         <i class="ph ph-arrows-clockwise text-xl"></i>
                     </button>
                     <div class="h-6 w-px bg-stone-800 mx-1"></div>
                     
-                    <!-- [NEW] ปุ่มใครอยู่ที่นี่ -->
                     <button @click="showPresenceModal = true" 
-                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border bg-stone-800 border-stone-600 text-stone-300 hover:border-dnd-gold hover:text-dnd-gold">
-                        <i class="ph ph-users-three mr-1 text-base"></i> ใครอยู่ที่นี่
+                            class="flex items-center px-2 py-1.5 rounded-md text-[10px] font-bold transition-all border bg-stone-800 border-stone-600 text-stone-300 hover:border-dnd-gold hover:text-dnd-gold">
+                        <i class="ph ph-users-three mr-1 text-sm"></i> <span class="hidden md:inline">ใครอยู่ที่นี่</span>
                     </button>
 
                     <button @click="toggleAutoRefresh" 
-                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border"
+                            class="flex items-center px-2 py-1.5 rounded-md text-[10px] font-bold transition-all border"
                             :class="autoRefresh ? 'bg-green-900/20 border-green-700 text-green-500' : 'bg-stone-800 border-stone-700 text-stone-500'">
                         <i class="ph ph-broadcast mr-1" :class="{'animate-pulse': autoRefresh}"></i>
-                        {{ autoRefresh ? 'LIVE' : 'MANUAL' }}
+                        <span class="hidden md:inline">{{ autoRefresh ? 'LIVE' : 'MANUAL' }}</span>
                     </button>
 
                     <button @click="showCoords = !showCoords" 
-                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border"
+                            class="flex items-center px-2 py-1.5 rounded-md text-[10px] font-bold transition-all border"
                             :class="showCoords ? 'bg-dnd-gold border-dnd-gold text-white' : 'bg-stone-800 border-stone-700 text-stone-500'">
-                        <i class="ph ph-hash mr-1"></i> COORDS
+                        <i class="ph ph-hash mr-1"></i> <span class="hidden md:inline">ตำแหน่ง</span>
                     </button>
                     
                     <button @click="openEmbedModal" class="p-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-md transition-all">
@@ -264,10 +261,9 @@
                 </div>
             </div>
 
-            <div class="map-viewport relative flex-1 bg-black overflow-auto" ref="scrollContainer">
-                <!-- Main Scrollable Map -->
+            <div class="map-viewport relative flex-1 custom-scroll" ref="scrollContainer">
                 <div class="map-wrapper" :style="mapWrapperStyle">
-                    <div class="map-container rounded-sm shadow-2xl" :style="[mapScaleStyle, { backgroundImage: 'url(' + selectedMap.image_url + ')' }]">
+                    <div class="map-container rounded-sm shadow-2xl" :style="mapScaleStyle">
                         <div class="grid-overlay">
                             <div v-for="n in 144" :key="n" 
                                  class="grid-cell"
@@ -299,13 +295,13 @@
             </div>
         </div>
 
-        <!-- Info Modal (Cell Detail) -->
+        <!-- Info Modal -->
         <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="closeModal">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in">
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h3 class="font-fantasy text-3xl text-dnd-gold">Cell Info</h3>
+                            <h3 class="font-fantasy text-3xl text-dnd-gold">พิกัดตำแหน่งo</h3>
                             <p class="text-stone-500 font-mono text-sm">Coordinates: {{ selectedCell.x }}, {{ selectedCell.y }}</p>
                         </div>
                         <button @click="closeModal" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
@@ -315,12 +311,12 @@
 
                     <div v-if="selectedCell.locked" class="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-xl text-center">
                         <i class="ph ph-lock-key-open-bold text-5xl text-red-600 mb-3 block"></i>
-                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">Locked Sector</p>
+                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">พื้นที่ถูกล้อค</p>
                         <p class="text-stone-400 text-sm mt-2 italic">{{ selectedCell.lockNote || 'No description provided' }}</p>
                     </div>
 
                     <div v-if="selectedCell.players.length > 0">
-                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">Occupants ({{ selectedCell.players.length }})</p>
+                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">คนที่อยู๋ในตำแหน่งนี้ ({{ selectedCell.players.length }})</p>
                         <div class="space-y-3">
                             <div v-for="player in selectedCell.players" :key="player.player_id" class="flex items-center bg-stone-900/50 p-3 rounded-xl border border-stone-800 group hover:border-dnd-gold transition-all">
                                 <img :src="player.avatar_url" @error="handleImageError" class="w-14 h-14 rounded-full border-2 border-dnd-gold shadow-lg object-cover">
@@ -334,19 +330,19 @@
 
                     <div v-if="!selectedCell.locked && selectedCell.players.length === 0" class="text-center py-10">
                         <i class="ph ph-selection-all text-6xl text-stone-800 mb-4 block"></i>
-                        <p class="text-stone-600 font-fantasy">The area is currently unoccupied</p>
+                        <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ตำแหน่งนี้</p>
                     </div>
 
                     <div class="mt-8 pt-6 border-t border-stone-800 flex justify-center space-x-4">
                         <button @click="copyToClipboard(`SPOT ${selectedCell.x}-${selectedCell.y}`)" class="text-[10px] font-bold text-stone-400 hover:text-dnd-gold uppercase transition-all">
-                            <i class="ph ph-copy mr-1"></i> Copy SPOT
+                            <i class="ph ph-copy mr-1"></i> คัดลอกตำแหน่ง
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- [NEW] Presence Modal (Who's Here) -->
+        <!-- Presence Modal -->
         <div v-if="showPresenceModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showPresenceModal = false">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[80vh]">
                 <div class="p-6 border-b border-stone-800 flex justify-between items-center bg-stone-900/40">
@@ -379,10 +375,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="p-4 bg-stone-900/20 text-center border-t border-stone-800">
-                    <p class="text-[9px] text-stone-500 uppercase">VTT Realm Tracking System</p>
-                </div>
             </div>
         </div>
 
@@ -390,7 +382,7 @@
         <div v-if="showEmbedModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showEmbedModal = false">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-lg p-10 shadow-2xl animate-fade-in">
                 <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-fantasy text-3xl text-dnd-gold">Share Realm</h3>
+                    <h3 class="font-fantasy text-3xl text-dnd-gold">แชร์แผนที่</h3>
                     <button @click="showEmbedModal = false" class="text-stone-500 hover:text-white"><i class="ph ph-x-bold text-2xl"></i></button>
                 </div>
                 <div class="space-y-6">
@@ -422,7 +414,7 @@
                     searchQuery: '',
                     showModal: false,
                     showEmbedModal: false,
-                    showPresenceModal: false, // [NEW] ควบคุม Modal รายชื่อ
+                    showPresenceModal: false, 
                     showCoords: false,
                     isEmbedMode: false,
                     autoRefresh: false,
@@ -452,8 +444,18 @@
                     const baseUrl = window.location.href.split('?')[0];
                     return `<iframe src="${baseUrl}?mapId=${this.selectedMap.map_id}&embed=true" width="1024" height="1024" frameborder="0" scrolling="no"></iframe>`;
                 },
+                mapWrapperStyle() {
+                    const scaledSize = 1024 * this.mapScale;
+                    return {
+                        width: `${scaledSize}px`,
+                        height: `${scaledSize}px`
+                    };
+                },
                 mapScaleStyle() {
-                    return { transform: `scale(${this.mapScale})` };
+                    return {
+                        transform: `scale(${this.mapScale})`,
+                        backgroundImage: this.selectedMap ? `url(${this.selectedMap.image_url})` : 'none'
+                    };
                 }
             },
             async mounted() {
@@ -509,8 +511,8 @@
                     const container = this.$refs.scrollContainer;
                     if (!container) return;
                     
-                    const screenWidth = container.clientWidth * 0.9;
-                    const screenHeight = container.clientHeight * 0.9;
+                    const screenWidth = container.clientWidth * 0.95;
+                    const screenHeight = container.clientHeight * 0.95;
                     
                     const scaleX = screenWidth / 1024;
                     const scaleY = screenHeight / 1024;
@@ -572,7 +574,6 @@
                 focusCell(x, y) {
                     this.notify(`Character at: ${x}, ${y}`);
                     this.showPresenceModal = false;
-                    // ในอนาคตสามารถทำระบบ Scroll ไปที่ตำแหน่งนั้นอัตโนมัติได้ครับ
                 },
                 closeModal() { this.showModal = false },
                 openEmbedModal() { this.showEmbedModal = true; },
