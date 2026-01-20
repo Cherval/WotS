@@ -20,13 +20,13 @@
                     },
                     colors: {
                         dnd: {
-                            bg: '#0c0a09',     /* Stone 950 */
-                            dark: '#1c1917',   /* Stone 900 */
-                            card: '#292524',   /* Stone 800 */
-                            gold: '#d97706',   /* Amber 600 */
-                            goldLight: '#fcd34d', /* Amber 300 */
-                            text: '#e7e5e4',   /* Stone 200 */
-                            danger: '#7f1d1d'  /* Red 900 */
+                            bg: '#0c0a09',
+                            dark: '#1c1917',
+                            card: '#292524',
+                            gold: '#d97706',
+                            goldLight: '#fcd34d',
+                            text: '#e7e5e4',
+                            danger: '#7f1d1d'
                         }
                     }
                 }
@@ -35,172 +35,370 @@
     </script>
 
     <style>
-        body { background-color: #0c0a09; color: #e7e5e4; }
+        body { 
+            background-color: #0c0a09; 
+            color: #e7e5e4; 
+            overflow: hidden; 
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #1c1917; }
-        ::-webkit-scrollbar-thumb { background: #57534e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #d97706; }
 
-        /* Map Grid System */
+        /* Map Wrapper */
+        .map-viewport {
+            position: relative;
+            flex: 1;
+            overflow: auto;
+            background-[#050505];
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .map-wrapper {
+            padding: 60px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Fixed Square Aspect Ratio */
         .map-container {
-            width: 1024px;   /* Fixed Size ตามโจทย์ */
+            width: 1024px;   
             height: 1024px;
+            aspect-ratio: 1 / 1;
             position: relative;
             background-size: cover;
             background-position: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 0 100px rgba(0,0,0,1);
+            transform-origin: center center;
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            flex-shrink: 0;
         }
 
         .grid-overlay {
             display: grid;
             width: 100%;
             height: 100%;
-            grid-template-columns: repeat(12, 1fr); /* 12 คอลัมน์ */
-            grid-template-rows: repeat(12, 1fr);    /* 12 แถว */
+            grid-template-columns: repeat(12, 1fr); 
+            grid-template-rows: repeat(12, 1fr);    
         }
 
         .grid-cell {
-            border: 1px solid rgba(255, 255, 255, 0.15); /* เส้นกริดจางๆ */
+            border: 1px solid rgba(255, 255, 255, 0.08); 
             position: relative;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
             cursor: pointer;
         }
 
         .grid-cell:hover {
-            background-color: rgba(255, 255, 255, 0.2); /* Hover สีขาวจางๆ */
-            border-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(217, 119, 6, 0.1); 
+            border-color: rgba(217, 119, 6, 0.4);
+            z-index: 30;
         }
 
-        /* Locked Cell Style */
         .grid-cell.locked {
             background-color: rgba(0, 0, 0, 0.85);
             background-image: repeating-linear-gradient(
                 45deg,
                 transparent,
                 transparent 10px,
-                rgba(50, 50, 50, 0.5) 10px,
-                rgba(50, 50, 50, 0.5) 20px
+                rgba(127, 29, 29, 0.2) 10px,
+                rgba(127, 29, 29, 0.2) 20px
             );
-            cursor: not-allowed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* Avatar Token */
         .player-token {
-            width: 80%;
-            height: 80%;
+            width: 85%;
+            height: 85%;
             border-radius: 50%;
-            border: 2px solid #d97706;
+            border: 3px solid #d97706;
             background-size: cover;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.7);
             margin: auto;
+            position: relative;
+            z-index: 10;
         }
+
+        .coord-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 10px;
+            font-weight: 800;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.7); 
+            padding: 1px 4px;
+            border-bottom-right-radius: 4px;
+            pointer-events: none;
+            user-select: none;
+            font-family: monospace;
+            z-index: 20;
+        }
+
+        .status-dot {
+            position: absolute;
+            top: 5%;
+            right: 5%;
+            width: 25%;
+            height: 25%;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid #292524;
+            z-index: 15;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #d97706; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="app" class="min-h-screen flex flex-col font-body">
 
-        <div v-if="loading" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dnd-bg">
-            <i class="ph ph-spinner animate-spin text-4xl text-dnd-gold mb-4"></i>
-            <p class="text-dnd-gold font-fantasy tracking-widest text-xl">Loading Realm Data...</p>
+        <!-- Loading Screen -->
+        <div v-if="loading && maps.length === 0" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dnd-bg">
+            <div class="relative">
+                <i class="ph ph-sword animate-bounce text-6xl text-dnd-gold"></i>
+                <i class="ph ph-spinner animate-spin text-8xl text-dnd-gold/20 absolute -inset-2"></i>
+            </div>
+            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">Preparing Realm</p>
         </div>
 
-        <div v-if="!loading && currentView === 'landing'" class="container mx-auto px-4 py-10 animate-fade-in">
+        <!-- Notification -->
+        <div v-if="notification" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[100] bg-dnd-gold text-white px-8 py-3 rounded-full shadow-2xl animate-fade-in flex items-center font-bold">
+            <i class="ph ph-sparkle text-xl mr-2"></i>
+            {{ notification }}
+        </div>
+
+        <!-- Landing Page -->
+        <div v-if="!loading && currentView === 'landing'" class="container mx-auto px-4 py-12 animate-fade-in h-screen overflow-y-auto custom-scroll">
             <header class="text-center mb-12">
-                <h1 class="text-5xl font-fantasy text-dnd-gold drop-shadow-lg mb-2">Adventure Maps</h1>
-                <p class="text-stone-500">เลือกสถานที่เพื่อเริ่มสำรวจ</p>
-                <div class="h-0.5 w-24 bg-dnd-gold mx-auto mt-4"></div>
+                <h1 class="text-6xl font-fantasy text-dnd-gold drop-shadow-2xl mb-4">Adventure Maps</h1>
+                <p class="text-stone-500 uppercase tracking-widest text-sm">Select a location to explore the unknown</p>
+                
+                <div class="max-w-md mx-auto mt-8 relative">
+                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 text-xl"></i>
+                    <input v-model="searchQuery" type="text" placeholder="Search for maps..." 
+                           class="w-full bg-stone-900 border-2 border-stone-800 rounded-full py-3 pl-12 pr-4 text-dnd-text focus:border-dnd-gold outline-none transition-all">
+                </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div v-for="map in maps" :key="map.map_id" @click="selectMap(map)"
-                     class="group bg-dnd-card border border-stone-700 rounded-lg overflow-hidden cursor-pointer hover:border-dnd-gold transition-all duration-300 hover:shadow-[0_0_15px_rgba(217,119,6,0.2)]">
-                    <div class="h-48 overflow-hidden">
-                        <img :src="map.image_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div v-for="map in filteredMaps" :key="map.map_id" @click="selectMap(map)"
+                     class="group bg-dnd-card border-2 border-stone-800 rounded-2xl overflow-hidden cursor-pointer hover:border-dnd-gold transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                    <div class="h-56 overflow-hidden bg-stone-900 relative">
+                        <img :src="map.image_url" @error="handleImageError" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-dnd-card via-transparent to-transparent opacity-60"></div>
                     </div>
-                    <div class="p-5">
-                        <h3 class="text-xl font-fantasy text-dnd-gold group-hover:text-dnd-goldLight">{{ map.name }}</h3>
-                        <p class="text-stone-400 text-sm mt-2 line-clamp-2">{{ map.description }}</p>
+                    <div class="p-6">
+                        <h3 class="text-2xl font-fantasy text-dnd-gold mb-2">{{ map.name }}</h3>
+                        <p class="text-stone-400 text-sm line-clamp-2 leading-relaxed">{{ map.description }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div v-if="!loading && currentView === 'map'" class="flex-1 flex flex-col h-screen overflow-hidden">
+        <!-- Map View -->
+        <div v-if="currentView === 'map'" class="flex-1 flex flex-col h-screen overflow-hidden animate-fade-in">
             
-            <div class="bg-dnd-dark border-b border-stone-700 p-4 flex justify-between items-center z-20 shadow-lg">
-                <button @click="goHome" class="flex items-center text-stone-400 hover:text-dnd-gold transition-colors">
-                    <i class="ph ph-arrow-left text-xl mr-2"></i> กลับหน้าหลัก
-                </button>
-                <h2 class="font-fantasy text-xl text-dnd-gold">{{ selectedMap.name }}</h2>
-                <div class="text-sm text-stone-500">Grid 12x12</div>
+            <!-- Dynamic Header -->
+            <div v-if="!isEmbedMode" class="bg-dnd-dark border-b border-stone-800 p-3 flex justify-between items-center z-50 shadow-2xl shrink-0">
+                <div class="flex items-center space-x-3">
+                    <button @click="goHome" class="p-2 text-stone-500 hover:text-dnd-gold transition-all hover:bg-stone-800 rounded-lg">
+                        <i class="ph ph-caret-left-bold text-2xl"></i>
+                    </button>
+                    <div>
+                        <h2 class="font-fantasy text-lg text-dnd-gold leading-tight">{{ selectedMap.name }}</h2>
+                        <p class="text-[10px] text-stone-500 uppercase tracking-tighter">VTT Control System</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <button @click="fetchAllData" :class="{'animate-spin': loading}" class="p-2 text-stone-400 hover:text-dnd-gold transition-all">
+                        <i class="ph ph-arrows-clockwise text-xl"></i>
+                    </button>
+                    <div class="h-6 w-px bg-stone-800 mx-1"></div>
+                    
+                    <!-- [NEW] ปุ่มใครอยู่ที่นี่ -->
+                    <button @click="showPresenceModal = true" 
+                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border bg-stone-800 border-stone-600 text-stone-300 hover:border-dnd-gold hover:text-dnd-gold">
+                        <i class="ph ph-users-three mr-1 text-base"></i> ใครอยู่ที่นี่
+                    </button>
+
+                    <button @click="toggleAutoRefresh" 
+                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border"
+                            :class="autoRefresh ? 'bg-green-900/20 border-green-700 text-green-500' : 'bg-stone-800 border-stone-700 text-stone-500'">
+                        <i class="ph ph-broadcast mr-1" :class="{'animate-pulse': autoRefresh}"></i>
+                        {{ autoRefresh ? 'LIVE' : 'MANUAL' }}
+                    </button>
+
+                    <button @click="showCoords = !showCoords" 
+                            class="flex items-center px-3 py-1.5 rounded-md text-[10px] font-bold transition-all border"
+                            :class="showCoords ? 'bg-dnd-gold border-dnd-gold text-white' : 'bg-stone-800 border-stone-700 text-stone-500'">
+                        <i class="ph ph-hash mr-1"></i> COORDS
+                    </button>
+                    
+                    <button @click="openEmbedModal" class="p-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-md transition-all">
+                        <i class="ph ph-share-network text-xl"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="flex-1 overflow-auto bg-stone-900 flex justify-center p-4 md:p-10">
-                
-                <div class="map-container rounded-lg" :style="{ backgroundImage: 'url(' + selectedMap.image_url + ')' }">
-                    <div class="grid-overlay">
-                        <div v-for="n in 144" :key="n" 
-                             class="grid-cell"
-                             :class="{ 'locked': isLocked(n) }"
-                             @click="handleCellClick(n)">
-                            
-                            <div v-if="getPlayersInCell(n).length > 0" class="w-full h-full flex items-center justify-center">
-                                <img v-if="getPlayersInCell(n).length === 1" 
-                                     :src="getPlayersInCell(n)[0].avatar_url" 
-                                     class="player-token" 
-                                     :title="getPlayersInCell(n)[0].name">
+            <div class="map-viewport relative flex-1 bg-black overflow-auto" ref="scrollContainer">
+                <!-- Main Scrollable Map -->
+                <div class="map-wrapper" :style="mapWrapperStyle">
+                    <div class="map-container rounded-sm shadow-2xl" :style="[mapScaleStyle, { backgroundImage: 'url(' + selectedMap.image_url + ')' }]">
+                        <div class="grid-overlay">
+                            <div v-for="n in 144" :key="n" 
+                                 class="grid-cell"
+                                 :class="{ 'locked': isLocked(n) }"
+                                 @click="handleCellClick(n)">
                                 
-                                <div v-else class="player-token bg-dnd-card flex items-center justify-center text-xs font-bold text-dnd-gold">
-                                    {{ getPlayersInCell(n).length }}
+                                <div v-if="showCoords" class="coord-label">
+                                    {{ indexToXY(n).x }},{{ indexToXY(n).y }}
+                                </div>
+
+                                <div v-if="getPlayersInCell(n).length > 0" class="w-full h-full flex items-center justify-center relative">
+                                    <div v-if="getPlayersInCell(n).length === 1" class="relative w-full h-full flex items-center justify-center">
+                                        <img :src="getPlayersInCell(n)[0].avatar_url" 
+                                             class="player-token" 
+                                             :title="getPlayersInCell(n)[0].name"
+                                             @error="handleImageError">
+                                        <div v-if="getPlayersInCell(n)[0].status" class="status-dot"></div>
+                                    </div>
+                                    <div v-else class="player-token bg-dnd-card flex items-center justify-center text-lg font-bold text-dnd-gold border-4 border-dnd-gold">
+                                        {{ getPlayersInCell(n).length }}
+                                    </div>
+                                </div>
+
+                                <i v-if="isLocked(n)" class="ph ph-prohibit text-red-900 text-2xl opacity-20 absolute bottom-1 right-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Modal (Cell Detail) -->
+        <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="closeModal">
+            <div class="bg-dnd-card border-2 border-stone-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="font-fantasy text-3xl text-dnd-gold">Cell Info</h3>
+                            <p class="text-stone-500 font-mono text-sm">Coordinates: {{ selectedCell.x }}, {{ selectedCell.y }}</p>
+                        </div>
+                        <button @click="closeModal" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
+                            <i class="ph ph-x-bold"></i>
+                        </button>
+                    </div>
+
+                    <div v-if="selectedCell.locked" class="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-xl text-center">
+                        <i class="ph ph-lock-key-open-bold text-5xl text-red-600 mb-3 block"></i>
+                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">Locked Sector</p>
+                        <p class="text-stone-400 text-sm mt-2 italic">{{ selectedCell.lockNote || 'No description provided' }}</p>
+                    </div>
+
+                    <div v-if="selectedCell.players.length > 0">
+                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">Occupants ({{ selectedCell.players.length }})</p>
+                        <div class="space-y-3">
+                            <div v-for="player in selectedCell.players" :key="player.player_id" class="flex items-center bg-stone-900/50 p-3 rounded-xl border border-stone-800 group hover:border-dnd-gold transition-all">
+                                <img :src="player.avatar_url" @error="handleImageError" class="w-14 h-14 rounded-full border-2 border-dnd-gold shadow-lg object-cover">
+                                <div class="ml-4 flex-1">
+                                    <div class="font-bold text-dnd-text">{{ player.name }}</div>
+                                    <div class="text-[10px] text-dnd-gold uppercase tracking-widest">{{ player.status || 'Active' }}</div>
                                 </div>
                             </div>
-
-                            <i v-if="isLocked(n)" class="ph ph-lock text-stone-500 text-2xl opacity-50"></i>
-
                         </div>
                     </div>
-                </div>
 
+                    <div v-if="!selectedCell.locked && selectedCell.players.length === 0" class="text-center py-10">
+                        <i class="ph ph-selection-all text-6xl text-stone-800 mb-4 block"></i>
+                        <p class="text-stone-600 font-fantasy">The area is currently unoccupied</p>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-stone-800 flex justify-center space-x-4">
+                        <button @click="copyToClipboard(`SPOT ${selectedCell.x}-${selectedCell.y}`)" class="text-[10px] font-bold text-stone-400 hover:text-dnd-gold uppercase transition-all">
+                            <i class="ph ph-copy mr-1"></i> Copy SPOT
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" @click.self="closeModal">
-            <div class="bg-dnd-card border border-stone-600 rounded-lg w-full max-w-sm p-6 shadow-2xl transform scale-100 transition-all">
+        <!-- [NEW] Presence Modal (Who's Here) -->
+        <div v-if="showPresenceModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showPresenceModal = false">
+            <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[80vh]">
+                <div class="p-6 border-b border-stone-800 flex justify-between items-center bg-stone-900/40">
+                    <div>
+                        <h3 class="font-fantasy text-2xl text-dnd-gold">ใครอยู่ที่นี่</h3>
+                        <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ currentMapPlayers.length }} Characters in Realm</p>
+                    </div>
+                    <button @click="showPresenceModal = false" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
+                        <i class="ph ph-x-bold"></i>
+                    </button>
+                </div>
                 
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="font-fantasy text-xl text-dnd-gold">Cell Info ({{ selectedCell.x }}, {{ selectedCell.y }})</h3>
-                    <button @click="closeModal" class="text-stone-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
-                </div>
-
-                <div v-if="selectedCell.locked" class="text-center py-4">
-                    <i class="ph ph-lock-key text-4xl text-red-900 mb-2"></i>
-                    <p class="text-red-400 font-bold">พื้นที่ถูกปิดกั้น</p>
-                    <p class="text-stone-400 text-sm mt-1">{{ selectedCell.lockNote }}</p>
-                </div>
-
-                <div v-else-if="selectedCell.players.length > 0">
-                    <p class="text-sm text-stone-500 mb-2">ตัวละครในช่องนี้:</p>
-                    <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        <div v-for="player in selectedCell.players" :key="player.player_id" class="flex items-center bg-stone-900/50 p-2 rounded border border-stone-700">
-                            <img :src="player.avatar_url" class="w-10 h-10 rounded-full border border-dnd-gold mr-3 object-cover">
-                            <div>
-                                <div class="font-bold text-dnd-text">{{ player.name }}</div>
-                                <div class="text-xs text-dnd-gold">Player</div>
+                <div class="p-6 overflow-y-auto custom-scroll flex-1">
+                    <div class="space-y-3">
+                        <div v-for="p in currentMapPlayers" :key="p.player_id" 
+                             @click="focusCell(p.pos_x, p.pos_y)"
+                             class="flex items-center p-3 rounded-xl bg-stone-900/60 border border-stone-800 hover:border-dnd-gold cursor-pointer transition-all group">
+                            <img :src="p.avatar_url" @error="handleImageError" class="w-12 h-12 rounded-full border-2 border-dnd-gold shadow-md object-cover mr-4">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-dnd-text truncate">{{ p.name }}</p>
+                                <p class="text-[10px] text-dnd-gold tracking-widest uppercase">Coordinates: {{ p.pos_x }}, {{ p.pos_y }}</p>
                             </div>
+                            <div class="text-stone-600 group-hover:text-dnd-gold transition-colors">
+                                <i class="ph ph-magnifying-glass-plus text-xl"></i>
+                            </div>
+                        </div>
+                        <div v-if="currentMapPlayers.length === 0" class="text-center py-20">
+                            <i class="ph ph-users-three text-6xl text-stone-800 mb-4 block"></i>
+                            <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ในบริเวณนี้</p>
                         </div>
                     </div>
                 </div>
-
-                <div v-else class="text-center py-6 text-stone-500">
-                    <p>ไม่มีสิ่งมีชีวิตในบริเวณนี้</p>
+                
+                <div class="p-4 bg-stone-900/20 text-center border-t border-stone-800">
+                    <p class="text-[9px] text-stone-500 uppercase">VTT Realm Tracking System</p>
                 </div>
+            </div>
+        </div>
 
+        <!-- Embed Modal -->
+        <div v-if="showEmbedModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showEmbedModal = false">
+            <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-lg p-10 shadow-2xl animate-fade-in">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="font-fantasy text-3xl text-dnd-gold">Share Realm</h3>
+                    <button @click="showEmbedModal = false" class="text-stone-500 hover:text-white"><i class="ph ph-x-bold text-2xl"></i></button>
+                </div>
+                <div class="space-y-6">
+                    <div class="relative bg-black p-4 rounded-xl border border-stone-800">
+                        <code class="text-dnd-goldLight text-xs block break-all leading-relaxed pr-12">{{ embedCode }}</code>
+                        <button @click="copyToClipboard(embedCode)" class="absolute top-4 right-4 text-stone-500 hover:text-dnd-gold"><i class="ph ph-copy-simple text-2xl"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -212,133 +410,205 @@
         createApp({
             data() {
                 return {
-                    // *** 1. ใส่ลิงก์ CSV จาก Google Sheet ตรงนี้ครับ (อย่าลืมเปลี่ยน gid ตามแท็บ) ***
                     urls: {
                         maps: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTVHgp2VrCC6CVnGH8stpi0-ks7iv3pAo8quYNSHSVxGBZJsc7onNj94pb2Z7DPM5HmKqaC99dF3F5/pub?gid=0&single=true&output=csv',
                         players: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTVHgp2VrCC6CVnGH8stpi0-ks7iv3pAo8quYNSHSVxGBZJsc7onNj94pb2Z7DPM5HmKqaC99dF3F5/pub?gid=1668031560&single=true&output=csv',
                         locks: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRTVHgp2VrCC6CVnGH8stpi0-ks7iv3pAo8quYNSHSVxGBZJsc7onNj94pb2Z7DPM5HmKqaC99dF3F5/pub?gid=1113843652&single=true&output=csv'
                     },
-                    
-                    // State
                     loading: true,
-                    currentView: 'landing', // 'landing' or 'map'
+                    errorMessage: '',
+                    notification: '',
+                    currentView: 'landing',
+                    searchQuery: '',
                     showModal: false,
+                    showEmbedModal: false,
+                    showPresenceModal: false, // [NEW] ควบคุม Modal รายชื่อ
+                    showCoords: false,
+                    isEmbedMode: false,
+                    autoRefresh: false,
+                    refreshInterval: null,
+                    mapScale: 1,
                     
-                    // Data Store
                     maps: [],
                     players: [],
-                    locks: [],
-                    
-                    // Selections
+                    rawLocks: [],
+                    lockedCellsMap: new Map(), 
                     selectedMap: null,
                     selectedCell: { x: 0, y: 0, players: [], locked: false, lockNote: '' }
                 }
             },
-            mounted() {
-                this.fetchAllData()
+            computed: {
+                filteredMaps() {
+                    if (!this.searchQuery) return this.maps;
+                    const q = this.searchQuery.toLowerCase();
+                    return this.maps.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+                },
+                currentMapPlayers() {
+                    if (!this.selectedMap) return [];
+                    return this.players.filter(p => p.current_map_id === this.selectedMap.map_id);
+                },
+                embedCode() {
+                    if (!this.selectedMap) return '';
+                    const baseUrl = window.location.href.split('?')[0];
+                    return `<iframe src="${baseUrl}?mapId=${this.selectedMap.map_id}&embed=true" width="1024" height="1024" frameborder="0" scrolling="no"></iframe>`;
+                },
+                mapScaleStyle() {
+                    return { transform: `scale(${this.mapScale})` };
+                }
+            },
+            async mounted() {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('embed') === 'true') this.isEmbedMode = true;
+
+                await this.fetchAllData();
+
+                const mapId = urlParams.get('mapId');
+                if (mapId) {
+                    const targetMap = this.maps.find(m => m.map_id === mapId);
+                    if (targetMap) this.selectMap(targetMap);
+                }
+
+                window.addEventListener('resize', this.calculateScale);
+            },
+            unmounted() {
+                if (this.refreshInterval) clearInterval(this.refreshInterval);
+                window.removeEventListener('resize', this.calculateScale);
             },
             methods: {
-                // โหลดข้อมูลพร้อมกัน 3 แหล่ง
                 async fetchAllData() {
                     this.loading = true
                     try {
-                        const [mapsRes, playersRes, locksRes] = await Promise.all([
-                            fetch(this.urls.maps),
-                            fetch(this.urls.players),
-                            fetch(this.urls.locks)
+                        const [m, p, l] = await Promise.all([
+                            fetch(this.urls.maps + '&_t=' + Date.now()),
+                            fetch(this.urls.players + '&_t=' + Date.now()), 
+                            fetch(this.urls.locks + '&_t=' + Date.now())
                         ])
-
-                        this.maps = this.csvToJson(await mapsRes.text())
-                        this.players = this.csvToJson(await playersRes.text())
-                        this.locks = this.csvToJson(await locksRes.text())
-                        
-                    } catch (error) {
-                        console.error("Error loading data:", error)
-                        alert("เกิดข้อผิดพลาดในการโหลดข้อมูล โปรดตรวจสอบลิงก์ CSV")
+                        if (!m.ok || !p.ok || !l.ok) throw new Error("Sync Failed");
+                        this.maps = this.csvToJson(await m.text());
+                        this.players = this.csvToJson(await p.text());
+                        this.rawLocks = this.csvToJson(await l.text());
+                        this.processLockData();
+                    } catch (e) {
+                        this.errorMessage = "Sync Error: Connection lost.";
                     } finally {
                         this.loading = false
                     }
                 },
-
-                // เลือกแผนที่
-                selectMap(map) {
-                    this.selectedMap = map
-                    this.currentView = 'map'
+                toggleAutoRefresh() {
+                    this.autoRefresh = !this.autoRefresh;
+                    if (this.autoRefresh) {
+                        this.refreshInterval = setInterval(this.fetchAllData, 8000);
+                        this.notify("Live Sync Enabled");
+                    } else {
+                        clearInterval(this.refreshInterval);
+                        this.notify("Manual Mode");
+                    }
                 },
-
-                // กลับหน้าหลัก
-                goHome() {
-                    this.selectedMap = null
-                    this.currentView = 'landing'
+                calculateScale() {
+                    if (this.currentView !== 'map') return;
+                    const container = this.$refs.scrollContainer;
+                    if (!container) return;
+                    
+                    const screenWidth = container.clientWidth * 0.9;
+                    const screenHeight = container.clientHeight * 0.9;
+                    
+                    const scaleX = screenWidth / 1024;
+                    const scaleY = screenHeight / 1024;
+                    
+                    this.mapScale = Math.max(0.3, Math.min(scaleX, scaleY, 2.0));
                 },
-
-                // แปลง Grid Index (1-144) เป็น XY
-                indexToXY(n) {
-                    // n เริ่มที่ 1
-                    const x = ((n - 1) % 12) + 1
-                    const y = Math.floor((n - 1) / 12) + 1
-                    return { x, y }
+                processLockData() {
+                    this.lockedCellsMap.clear();
+                    this.rawLocks.forEach(lock => {
+                        const mid = lock.map_id;
+                        const note = lock.note || '';
+                        if (lock.pos_x && lock.pos_y) this.lockedCellsMap.set(`${mid}-${lock.pos_x}-${lock.pos_y}`, { note });
+                        if (lock.lock_area) {
+                            const cmd = lock.lock_area.trim().toUpperCase();
+                            const parts = cmd.split(/\s+/);
+                            if (parts[0] === 'RECT' && parts.length >= 3) {
+                                const [xs, xe] = parts[1].split('-').map(Number);
+                                const [ys, ye] = parts[2].split('-').map(Number);
+                                if (!isNaN(xs) && !isNaN(xe) && !isNaN(ys) && !isNaN(ye)) {
+                                    for (let x = xs; x <= xe; x++) {
+                                        for (let y = ys; y <= ye; y++) {
+                                            this.lockedCellsMap.set(`${mid}-${x}-${y}`, { note });
+                                        }
+                                    }
+                                }
+                            } else if (parts[0] === 'SPOT') {
+                                for (let i = 1; i < parts.length; i++) {
+                                    const [x, y] = parts[i].split('-').map(Number);
+                                    if (!isNaN(x) && !isNaN(y)) this.lockedCellsMap.set(`${mid}-${x}-${y}`, { note });
+                                }
+                            }
+                        }
+                    });
                 },
-
-                // ตรวจสอบว่าช่องล็อคหรือไม่ (เฉพาะ map ปัจจุบัน)
+                selectMap(map) { 
+                    this.selectedMap = map; 
+                    this.currentView = 'map'; 
+                    this.$nextTick(() => { this.calculateScale(); });
+                },
+                goHome() { this.selectedMap = null; this.currentView = 'landing'; },
+                indexToXY(n) { return { x: ((n - 1) % 12) + 1, y: Math.floor((n - 1) / 12) + 1 }; },
                 isLocked(n) {
-                    if (!this.selectedMap) return false
-                    const { x, y } = this.indexToXY(n)
-                    return this.locks.some(l => 
-                        l.map_id === this.selectedMap.map_id && 
-                        parseInt(l.pos_x) === x && 
-                        parseInt(l.pos_y) === y
-                    )
+                    if (!this.selectedMap) return false;
+                    const { x, y } = this.indexToXY(n);
+                    return this.lockedCellsMap.has(`${this.selectedMap.map_id}-${x}-${y}`);
                 },
-
-                // ดึงผู้เล่นในช่อง (เฉพาะ map ปัจจุบัน)
                 getPlayersInCell(n) {
                     if (!this.selectedMap) return []
                     const { x, y } = this.indexToXY(n)
-                    return this.players.filter(p => 
-                        p.current_map_id === this.selectedMap.map_id && 
-                        parseInt(p.pos_x) === x && 
-                        parseInt(p.pos_y) === y
-                    )
+                    return this.players.filter(p => p.current_map_id === this.selectedMap.map_id && parseInt(p.pos_x) === x && parseInt(p.pos_y) === y)
                 },
-
-                // คลิกช่อง
                 handleCellClick(n) {
-                    const { x, y } = this.indexToXY(n)
-                    const players = this.getPlayersInCell(n)
-                    
-                    // หาข้อมูล Lock
-                    const lockData = this.locks.find(l => 
-                        l.map_id === this.selectedMap.map_id && 
-                        parseInt(l.pos_x) === x && 
-                        parseInt(l.pos_y) === y
-                    )
-
-                    this.selectedCell = {
-                        x, y,
-                        players: players,
-                        locked: !!lockData,
-                        lockNote: lockData ? lockData.note : ''
-                    }
+                    const { x, y } = this.indexToXY(n);
+                    const key = `${this.selectedMap.map_id}-${x}-${y}`;
+                    const lockData = this.lockedCellsMap.get(key);
+                    this.selectedCell = { x, y, players: this.getPlayersInCell(n), locked: !!lockData, lockNote: lockData ? lockData.note : '' }
                     this.showModal = true
                 },
-
-                closeModal() {
-                    this.showModal = false
+                focusCell(x, y) {
+                    this.notify(`Character at: ${x}, ${y}`);
+                    this.showPresenceModal = false;
+                    // ในอนาคตสามารถทำระบบ Scroll ไปที่ตำแหน่งนั้นอัตโนมัติได้ครับ
                 },
-
-                // CSV Utility (แบบง่าย)
+                closeModal() { this.showModal = false },
+                openEmbedModal() { this.showEmbedModal = true; },
+                notify(msg) {
+                    this.notification = msg;
+                    setTimeout(() => this.notification = '', 3000);
+                },
+                copyToClipboard(text) {
+                    const el = document.createElement('textarea');
+                    el.value = text;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(el);
+                    this.notify("Copied!");
+                },
+                handleImageError(e) { e.target.src = 'https://placehold.co/400x400/292524/d97706?text=No+Image'; },
                 csvToJson(csvText) {
-                    const lines = csvText.trim().split('\n')
-                    const headers = lines[0].trim().split(',').map(h => h.trim())
+                    const lines = csvText.trim().split('\n'); if (lines.length < 2) return [];
+                    const headers = lines[0].trim().split(',').map(h => h.trim());
                     return lines.slice(1).map(line => {
-                        const values = line.split(',')
-                        let obj = {}
-                        headers.forEach((h, i) => {
-                            obj[h] = values[i] ? values[i].trim() : ''
-                        })
-                        return obj
-                    })
+                        if (!line.trim()) return null;
+                        let values = [], currentVal = '', inQuotes = false;
+                        for(let i=0; i<line.length; i++) {
+                            const char = line[i];
+                            if(char === '"') inQuotes = !inQuotes;
+                            else if (char === ',' && !inQuotes) { values.push(currentVal.trim()); currentVal = ''; }
+                            else currentVal += char;
+                        }
+                        values.push(currentVal.trim());
+                        let obj = {}; headers.forEach((h, i) => {
+                            let val = values[i] || '';
+                            if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1).replace(/""/g, '"');
+                            obj[h] = val;
+                        }); return obj;
+                    }).filter(item => item !== null);
                 }
             }
         }).mount('#app')
