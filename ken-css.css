@@ -234,3 +234,167 @@
             background: rgba(255, 140, 0, 0.2);
             border-radius: 2px;
         }
+
+/* Main Wrapper */
+        .ken3-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 12px auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Filter drop-shadow applies to the combined shape of the envelope */
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+
+        /* The Letter Paper */
+        .ken3-letter {
+            position: relative;
+            width: 90%;
+            min-height: 300px;
+            padding: 40px 30px 60px 30px; /* Extra padding bottom to clear the envelope overlap */
+            box-sizing: border-box;
+            background-color: #0F172A; /* Deep Blue Base */
+            color: #FCD34D; /* Gold Text */
+            z-index: 1; /* Behind the envelope front, in front of envelope back */
+            margin-bottom: -40px; /* Pull the envelope up */
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            
+            /* Requirement 3: SVG Pattern for Stars and Moons */
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M70 20 C 65 20 60 25 60 30 C 60 38 65 42 70 42 C 68 38 68 24 70 20 Z' fill='%23FCD34D' opacity='0.2'/%3E%3Cpath d='M20 60 L23 68 L31 68 L25 74 L27 82 L20 76 L13 82 L15 74 L9 68 L17 68 Z' fill='%23FCD34D' opacity='0.15'/%3E%3Ccircle cx='85' cy='80' r='1.5' fill='%23FCD34D' opacity='0.4'/%3E%3Ccircle cx='40' cy='15' r='1' fill='%23FCD34D' opacity='0.5'/%3E%3C/svg%3E");
+        }
+
+        /* Decorative top border for the paper */
+        .ken3-letter::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(252, 211, 77, 0.3);
+            pointer-events: none;
+        }
+
+        /* Owl Icon Container */
+        .ken3-header-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            margin-top: -10px; /* Pull up slightly */
+        }
+
+        .ken3-owl-svg {
+            width: 60px;
+            height: 60px;
+            fill: none;
+            stroke: #FCD34D;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 2px rgba(252, 211, 77, 0.5));
+        }
+
+        /* Typography Styling */
+        .ken3-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            
+            /* Gradient Text Effect */
+            background: linear-gradient(to bottom right, #FEF3C7 0%, #F59E0B 50%, #D97706 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #FCD34D; /* Fallback for browsers not supporting clip */
+            
+            /* Use filter for shadow on gradient text instead of text-shadow */
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+            font-weight: 500;
+        }
+
+        .ken3-quote {
+            font-style: italic;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .ken3-author {
+            text-align: right;
+            font-weight: 700;
+            display: block;
+            margin-top: 10px;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .ken3-separator {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            opacity: 0.6;
+        }
+        
+        /* SVG Separator Line */
+        .ken3-svg-divider {
+            width: 100%;
+            height: 20px;
+            fill: none;
+            stroke: #FCD34D;
+            stroke-width: 1;
+        }
+
+        /* The Cream Envelope */
+        .ken3-envelope-wrapper {
+            position: relative;
+            width: 100%;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* The back of the envelope (visible if paper is translucent, but mainly for structure) */
+        .ken3-envelope-back {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background-color: #FDF5E6; /* Cream */
+            border-radius: 0 0 5px 5px;
+            z-index: 0;
+        }
+
+        /* The Front Pocket of the Envelope */
+        .ken3-envelope-front {
+            position: relative;
+            width: 100%;
+            height: 0;
+            border-style: solid;
+            /* Creating the envelope V-shape using borders */
+            border-width: 0 300px 180px 300px; /* Adjust based on max-width */
+            border-color: transparent transparent #FDF5E6 transparent;
+            filter: drop-shadow(0 -5px 5px rgba(0,0,0,0.1));
+            z-index: 2;
+            /* Responsive adjustment hack handled in media query */
+        }
+        
+        /* Optional: A Wax Seal SVG */
+        .ken3-wax-seal {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            z-index: 3;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 620px) {
+            .ken3-envelope-front {
+                border-width: 0 50vw 150px 50vw;
+            }
+        }
