@@ -1,0 +1,181 @@
+:root {
+            --wots1-bg-dark: #0f141a;
+            --wots1-box-dark: #161d26;
+            --wots1-gold: #d97706; 
+            --wots1-gold-light: #fef3c7;
+            /* SVG Corner Data URI */
+            --wots1-svg-corner: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M0 0H100V2H2V100H0V0Z' fill='%23d97706' /%3E%3Cpath d='M10 10H90V12H12V90H10V10Z' fill='%23d97706' opacity='0.6' /%3E%3Ccircle cx='15' cy='15' r='3' fill='%23d97706' /%3E%3Cpath d='M30 0L30 30L0 30' stroke='%23d97706' stroke-width='1' fill='none' /%3E%3Cpath d='M40 0C40 22.0914 22.0914 40 0 40' stroke='%23d97706' stroke-width='1' fill='none' /%3E%3C/svg%3E");
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--wots1-bg-dark);
+            font-family: 'Sarabun', sans-serif;
+            color: var(--wots1-gold-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .wots1-rp-container {
+            position: relative;
+            max-width: 950px;
+            width: 100%;
+            background-color: var(--wots1-box-dark);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            box-shadow: 0 60px 120px rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Visual Stage (Header Part) --- */
+        .wots1-visual-stage {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        .wots1-scene-bg {
+            position: absolute;
+            inset: 0;
+            background-image: var(--wots1-bgi);
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            filter: grayscale(30%) brightness(0.65);
+            z-index: 1;
+        }
+
+        .wots1-char-img {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            background-image: var(--wots1-char);
+            background-size: var(--wots1-char-size, 35%); 
+            background-position: var(--wots1-char-pst, 85% bottom);
+            background-repeat: no-repeat;
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.8));
+            pointer-events: none;
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+
+        .wots1-visual-fade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                transparent 65%, 
+                var(--wots1-box-dark) 100%);
+            z-index: 10;
+        }
+
+        /* --- Content Area --- */
+        .wots1-content-block {
+            position: relative;
+            z-index: 20;
+            padding: 60px 80px 80px 80px;
+            margin-top: -120px;
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(22, 29, 38, 0) 0%, rgba(22, 29, 38, 1) 15%);
+        }
+
+        .wots1-header-title {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 6rem;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.01em;
+            line-height: 0.9;
+            color: var(--wots1-gold-light);
+            text-shadow: 0 0 25px rgba(0,0,0,1), 0 0 50px rgba(217, 119, 6, 0.4);
+        }
+
+        .wots1-deco-line {
+            position: relative;
+            width: 320px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--wots1-gold), transparent);
+            margin: 0 auto 50px auto;
+        }
+
+        .wots1-deco-line::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 16px; height: 16px;
+            background-color: var(--wots1-gold);
+            border: 3px solid var(--wots1-box-dark);
+        }
+
+        .wots1-main-text {
+            font-size: 2.2rem;
+            line-height: 1.8;
+            font-style: italic;
+            font-weight: 300;
+            text-align: justify;
+            color: rgba(254, 243, 199, 0.95);
+            padding: 0 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 20px; 
+        }
+
+        .wots1-main-text p { margin-bottom: 30px; }
+
+        /* --- Note Section--- */
+        .wots1-note-section {
+            margin-top: 40px; 
+            border-top: 1px solid rgba(217, 119, 6, 0.1);
+            padding-top: 40px;
+        }
+
+        .wots1-note-label {
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.8em;
+            font-size: 1rem;
+            color: rgba(217, 119, 6, 0.4);
+            margin-bottom: 20px; 
+        }
+
+        .wots1-note-box {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(217, 119, 6, 0.15);
+            padding: 40px;
+            font-size: 1.7rem;
+            font-weight: 300;
+            color: rgba(254, 243, 199, 0.65);
+            line-height: 1.7;
+            position: relative;
+        }
+
+        .wots1-note-box::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border: 1px solid rgba(217, 119, 6, 0.05);
+            pointer-events: none;
+        }
+
+        /* --- Decorations --- */
+        .wots1-corner {
+            position: absolute;
+            z-index: 100;
+            width: 120px;
+            height: 120px;
+            background-image: var(--wots1-svg-corner);
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+        .wots1-corner-tl { top: 25px; left: 25px; }
+        .wots1-corner-tr { top: 25px; right: 25px; transform: rotate(90deg); }
+        .wots1-corner-bl { bottom: 25px; left: 25px; transform: rotate(-90deg); }
+        .wots1-corner-br { bottom: 25px; right: 25px; transform: rotate(180deg); }
