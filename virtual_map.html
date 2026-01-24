@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแผนที่กิจกรรม | Kendrick's Code</title>
+    <title>VTT System - Hart's Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -28,6 +28,9 @@
                             text: '#e7e5e4',
                             danger: '#7f1d1d'
                         }
+                    },
+                    screens: {
+                        'xs': '400px',
                     }
                 }
             }
@@ -92,8 +95,8 @@
         }
 
         .grid-cell:hover {
-            background-color: rgba(217, 119, 6, 0.1); 
-            border-color: rgba(217, 119, 6, 0.4);
+            background-color: rgba(255, 255, 255, 0.15); 
+            border-color: rgba(255, 255, 255, 0.3);
             z-index: 30;
         }
 
@@ -110,14 +113,51 @@
 
         .player-token {
             width: 85%;
-            aspect-ratio: 1 / 1; /* บังคับเป็นสี่เหลี่ยมจัตุรัส */
-            object-fit: cover;   /* ครอปรูปส่วนเกินออกเพื่อรักษาอัตราส่วน */
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
             border-radius: 50%;
             border: 3px solid #d97706;
             box-shadow: 0 8px 15px rgba(0,0,0,0.7);
             margin: auto;
             position: relative;
             z-index: 10;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+        }
+
+        .grid-cell:hover .player-token {
+            transform: scale(1.18) translateY(-5px);
+            border-color: #fcd34d;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.8), 0 0 15px rgba(217, 119, 6, 0.6);
+            filter: brightness(1.1) drop-shadow(0 0 5px rgba(217, 119, 6, 0.4));
+        }
+
+        /* [PRO UPGRADE] วงกลมสัญลักษณ์จำนวนคนเพิ่มเติม */
+        .player-count-badge {
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
+            background: #d97706;
+            color: white;
+            font-size: 11px;
+            font-weight: 900;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #1c1917;
+            z-index: 20;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .grid-cell:hover .player-count-badge {
+            transform: scale(1.1) translate(2px, 2px);
+            background: #fcd34d;
+            color: #1c1917;
         }
 
         .coord-label {
@@ -171,30 +211,30 @@
 
     <div id="app" class="min-h-screen flex flex-col">
 
-        <!-- Loading Screen -->
+        <!-- หน้าจอโหลดข้อมูล -->
         <div v-if="loading && maps.length === 0" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-dnd-bg">
             <div class="relative">
                 <i class="ph ph-sword animate-bounce text-6xl text-dnd-gold"></i>
                 <i class="ph ph-spinner animate-spin text-8xl text-dnd-gold/20 absolute -inset-2"></i>
             </div>
-            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">กำลังโหลดแผนที่</p>
+            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">กำลังเตรียมอาณาจักร</p>
         </div>
 
-        <!-- Notification -->
+        <!-- การแจ้งเตือน -->
         <div v-if="notification" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[100] bg-dnd-gold text-white px-8 py-3 rounded-full shadow-2xl animate-fade-in flex items-center font-bold">
             <i class="ph ph-sparkle text-xl mr-2"></i>
             {{ notification }}
         </div>
 
-        <!-- Landing Page -->
+        <!-- หน้าเลือกแผนที่ -->
         <div v-if="!loading && currentView === 'landing'" class="container mx-auto px-4 py-12 animate-fade-in flex-1 overflow-y-auto custom-scroll">
             <header class="text-center mb-12">
-                <h1 class="text-6xl font-fantasy text-dnd-gold drop-shadow-2xl mb-4">Adventure Maps</h1>
-                <p class="text-stone-500 uppercase tracking-widest text-sm text-balance">เลือกแผนที่เพื่อสำรวจ</p>
+                <h1 class="text-6xl font-fantasy text-dnd-gold drop-shadow-2xl mb-4">แผนที่การผจญภัย</h1>
+                <p class="text-stone-500 uppercase tracking-widest text-sm text-balance">เลือกสถานที่เพื่อเริ่มต้นการสำรวจ</p>
                 
                 <div class="max-w-md mx-auto mt-8 relative">
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 text-xl"></i>
-                    <input v-model="searchQuery" type="text" placeholder="Search for maps..." 
+                    <input v-model="searchQuery" type="text" placeholder="ค้นหาแผนที่..." 
                            class="w-full bg-stone-900 border-2 border-stone-800 rounded-full py-3 pl-12 pr-4 text-dnd-text focus:border-dnd-gold outline-none transition-all">
                 </div>
             </header>
@@ -212,15 +252,19 @@
                     </div>
                 </div>
             </div>
+            
+            <div v-if="filteredMaps.length === 0" class="text-center py-20 text-stone-600">
+                <i class="ph ph-map-trifold text-6xl mb-4 opacity-20"></i>
+                <p>ไม่พบแผนที่ที่เปิดใช้งานในขณะนี้ครับ</p>
+            </div>
         </div>
 
-        <!-- Map View -->
+        <!-- หน้าแสดงแผนที่ -->
         <div v-if="currentView === 'map'" class="flex-1 flex flex-col h-[100dvh] overflow-hidden animate-fade-in bg-black">
             
-            <!-- Dynamic Header -->
+            <!-- แถบเครื่องมือ -->
             <div v-if="!isEmbedMode" class="bg-dnd-dark border-b border-stone-800 p-3 flex justify-between items-center z-50 shadow-2xl shrink-0">
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <!-- [FIXED] ปุ่มย้อนกลับแบบมีข้อความชัดเจน -->
                     <button @click="goHome" class="flex items-center px-3 py-2 text-stone-400 hover:text-dnd-gold transition-all hover:bg-stone-800 rounded-lg group">
                         <i class="ph ph-caret-left-bold text-2xl mr-1"></i>
                         <span class="text-sm font-bold uppercase tracking-wider">กลับหน้าหลัก</span>
@@ -232,7 +276,7 @@
                 </div>
 
                 <div class="flex items-center space-x-1 sm:space-x-2">
-                    <button @click="fetchAllData" :class="{'animate-spin': loading}" class="p-2 text-stone-400 hover:text-dnd-gold transition-all">
+                    <button @click="fetchAllData" :class="{'animate-spin': loading}" class="p-2 text-stone-400 hover:text-dnd-gold transition-all" title="รีเฟรชข้อมูล">
                         <i class="ph ph-arrows-clockwise text-xl"></i>
                     </button>
                     <div class="h-6 w-px bg-stone-800 mx-1"></div>
@@ -246,16 +290,16 @@
                             class="flex items-center px-2 py-1.5 rounded-md text-[10px] font-bold transition-all border"
                             :class="autoRefresh ? 'bg-green-900/20 border-green-700 text-green-500' : 'bg-stone-800 border-stone-700 text-stone-500'">
                         <i class="ph ph-broadcast mr-1" :class="{'animate-pulse': autoRefresh}"></i>
-                        <span class="hidden md:inline">{{ autoRefresh ? 'LIVE' : 'MANUAL' }}</span>
+                        <span class="hidden md:inline">{{ autoRefresh ? 'สด (LIVE)' : 'ปกติ (MANUAL)' }}</span>
                     </button>
 
                     <button @click="showCoords = !showCoords" 
                             class="flex items-center px-2 py-1.5 rounded-md text-[10px] font-bold transition-all border"
                             :class="showCoords ? 'bg-dnd-gold border-dnd-gold text-white' : 'bg-stone-800 border-stone-700 text-stone-500'">
-                        <i class="ph ph-hash mr-1"></i> <span class="hidden md:inline">ตำแหน่ง</span>
+                        <i class="ph ph-hash mr-1"></i> <span class="hidden md:inline">พิกัด</span>
                     </button>
                     
-                    <button @click="openEmbedModal" class="p-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-md transition-all">
+                    <button @click="openEmbedModal" class="p-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-md transition-all" title="แชร์แผนที่">
                         <i class="ph ph-share-network text-xl"></i>
                     </button>
                 </div>
@@ -275,15 +319,20 @@
                                 </div>
 
                                 <div v-if="getPlayersInCell(n).length > 0" class="w-full h-full flex items-center justify-center relative">
-                                    <div v-if="getPlayersInCell(n).length === 1" class="relative w-full h-full flex items-center justify-center">
+                                    <div class="relative w-full h-full flex items-center justify-center">
+                                        <!-- [แก้ไข] แสดงรูปตัวละครคนแรกเสมอ -->
                                         <img :src="getPlayersInCell(n)[0].avatar_url" 
                                              class="player-token" 
                                              :title="getPlayersInCell(n)[0].name"
                                              @error="handleImageError">
+                                             
+                                        <!-- จุดสถานะ (ถ้ามี) -->
                                         <div v-if="getPlayersInCell(n)[0].status" class="status-dot"></div>
-                                    </div>
-                                    <div v-else class="player-token bg-dnd-card flex items-center justify-center text-lg font-bold text-dnd-gold border-4 border-dnd-gold">
-                                        {{ getPlayersInCell(n).length }}
+                                        
+                                        <!-- [NEW] Badge แสดงจำนวนคนเพิ่มเติม (+n) -->
+                                        <div v-if="getPlayersInCell(n).length > 1" class="player-count-badge">
+                                            +{{ getPlayersInCell(n).length - 1 }}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -295,14 +344,14 @@
             </div>
         </div>
 
-        <!-- Info Modal -->
+        <!-- หน้าต่างข้อมูลช่อง -->
         <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="closeModal">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-fade-in">
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h3 class="font-fantasy text-3xl text-dnd-gold">พิกัดตำแหน่ง</h3>
-                            <p class="text-stone-500 font-mono text-sm">Coordinates: {{ selectedCell.x }}, {{ selectedCell.y }}</p>
+                            <h3 class="font-fantasy text-3xl text-dnd-gold">ข้อมูลช่อง</h3>
+                            <p class="text-stone-500 font-mono text-sm">พิกัด: {{ selectedCell.x }}, {{ selectedCell.y }}</p>
                         </div>
                         <button @click="closeModal" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
                             <i class="ph ph-x-bold"></i>
@@ -311,12 +360,12 @@
 
                     <div v-if="selectedCell.locked" class="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-xl text-center">
                         <i class="ph ph-lock-key-open-bold text-5xl text-red-600 mb-3 block"></i>
-                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">พื้นที่ถูกล้อค</p>
-                        <p class="text-stone-400 text-sm mt-2 italic">{{ selectedCell.lockNote || 'No description provided' }}</p>
+                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">พื้นที่ที่ถูกปิดกั้น</p>
+                        <p class="text-stone-400 text-sm mt-2 italic">{{ selectedCell.lockNote || 'ไม่ได้ระบุรายละเอียด' }}</p>
                     </div>
 
                     <div v-if="selectedCell.players.length > 0">
-                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">คนที่อยู๋ในตำแหน่งนี้ ({{ selectedCell.players.length }})</p>
+                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">ตัวละครในช่องนี้ ({{ selectedCell.players.length }})</p>
                         <div class="space-y-3">
                             <div v-for="player in selectedCell.players" :key="player.player_id" class="flex items-center bg-stone-900/50 p-3 rounded-xl border border-stone-800 group hover:border-dnd-gold transition-all">
                                 <img :src="player.avatar_url" @error="handleImageError" class="w-14 h-14 rounded-full border-2 border-dnd-gold shadow-lg object-cover">
@@ -330,25 +379,25 @@
 
                     <div v-if="!selectedCell.locked && selectedCell.players.length === 0" class="text-center py-10">
                         <i class="ph ph-selection-all text-6xl text-stone-800 mb-4 block"></i>
-                        <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ตำแหน่งนี้</p>
+                        <p class="text-stone-600 font-fantasy">พื้นที่นี้ว่างเปล่า</p>
                     </div>
 
                     <div class="mt-8 pt-6 border-t border-stone-800 flex justify-center space-x-4">
                         <button @click="copyToClipboard(`SPOT ${selectedCell.x}-${selectedCell.y}`)" class="text-[10px] font-bold text-stone-400 hover:text-dnd-gold uppercase transition-all">
-                            <i class="ph ph-copy mr-1"></i> คัดลอกตำแหน่ง
+                            <i class="ph ph-copy mr-1"></i> คัดลอกพิกัด (SPOT)
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Presence Modal -->
+        <!-- หน้าต่างรายชื่อผู้เล่น -->
         <div v-if="showPresenceModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showPresenceModal = false">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in flex flex-col max-h-[80vh]">
                 <div class="p-6 border-b border-stone-800 flex justify-between items-center bg-stone-900/40">
                     <div>
                         <h3 class="font-fantasy text-2xl text-dnd-gold">ใครอยู่ที่นี่</h3>
-                        <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ currentMapPlayers.length }} Characters in Realm</p>
+                        <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ currentMapPlayers.length }} ตัวละครในอาณาจักร</p>
                     </div>
                     <button @click="showPresenceModal = false" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
                         <i class="ph ph-x-bold"></i>
@@ -363,7 +412,7 @@
                             <img :src="p.avatar_url" @error="handleImageError" class="w-12 h-12 rounded-full border-2 border-dnd-gold shadow-md object-cover mr-4">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-bold text-dnd-text truncate">{{ p.name }}</p>
-                                <p class="text-[10px] text-dnd-gold tracking-widest uppercase">Coordinates: {{ p.pos_x }}, {{ p.pos_y }}</p>
+                                <p class="text-[10px] text-dnd-gold tracking-widest uppercase">พิกัด: {{ p.pos_x }}, {{ p.pos_y }}</p>
                             </div>
                             <div class="text-stone-600 group-hover:text-dnd-gold transition-colors">
                                 <i class="ph ph-magnifying-glass-plus text-xl"></i>
@@ -371,18 +420,18 @@
                         </div>
                         <div v-if="currentMapPlayers.length === 0" class="text-center py-20">
                             <i class="ph ph-users-three text-6xl text-stone-800 mb-4 block"></i>
-                            <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ในบริเวณนี้</p>
+                            <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ในอาณาจักรนี้</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Embed Modal -->
+        <!-- หน้าต่างแชร์แผนที่ -->
         <div v-if="showEmbedModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showEmbedModal = false">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-lg p-10 shadow-2xl animate-fade-in">
                 <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-fantasy text-3xl text-dnd-gold">แชร์แผนที่</h3>
+                    <h3 class="font-fantasy text-3xl text-dnd-gold">แชร์อาณาจักร</h3>
                     <button @click="showEmbedModal = false" class="text-stone-500 hover:text-white"><i class="ph ph-x-bold text-2xl"></i></button>
                 </div>
                 <div class="space-y-6">
@@ -431,9 +480,13 @@
             },
             computed: {
                 filteredMaps() {
-                    if (!this.searchQuery) return this.maps;
+                    const activeMaps = this.maps.filter(m => m.status !== 'inactive');
+                    if (!this.searchQuery) return activeMaps;
                     const q = this.searchQuery.toLowerCase();
-                    return this.maps.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q));
+                    return activeMaps.filter(m => 
+                        (m.name && m.name.toLowerCase().includes(q)) || 
+                        (m.description && m.description.toLowerCase().includes(q))
+                    );
                 },
                 currentMapPlayers() {
                     if (!this.selectedMap) return [];
@@ -500,10 +553,10 @@
                     this.autoRefresh = !this.autoRefresh;
                     if (this.autoRefresh) {
                         this.refreshInterval = setInterval(this.fetchAllData, 8000);
-                        this.notify("Live Sync Enabled");
+                        this.notify("เปิดการเชื่อมต่อข้อมูลสดแล้ว");
                     } else {
                         clearInterval(this.refreshInterval);
-                        this.notify("Manual Mode");
+                        this.notify("ปิดการเชื่อมต่อข้อมูลสดแล้ว");
                     }
                 },
                 calculateScale() {
@@ -572,7 +625,7 @@
                     this.showModal = true
                 },
                 focusCell(x, y) {
-                    this.notify(`Character at: ${x}, ${y}`);
+                    this.notify(`พบตัวละครที่พิกัด: ${x}, ${y}`);
                     this.showPresenceModal = false;
                 },
                 closeModal() { this.showModal = false },
@@ -588,7 +641,7 @@
                     el.select();
                     document.execCommand('copy');
                     document.body.removeChild(el);
-                    this.notify("Copied!");
+                    this.notify("คัดลอกเรียบร้อยแล้ว!");
                 },
                 handleImageError(e) { e.target.src = 'https://placehold.co/400x400/292524/d97706?text=No+Image'; },
                 csvToJson(csvText) {
