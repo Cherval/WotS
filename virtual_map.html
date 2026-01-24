@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTT System - Hart's Edition</title>
+    <title>Maps = Kendrick's Code</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -217,7 +217,7 @@
                 <i class="ph ph-sword animate-bounce text-6xl text-dnd-gold"></i>
                 <i class="ph ph-spinner animate-spin text-8xl text-dnd-gold/20 absolute -inset-2"></i>
             </div>
-            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">กำลังเตรียมอาณาจักร</p>
+            <p class="text-dnd-gold font-fantasy tracking-[0.3em] text-2xl mt-8 uppercase">กำลังโหลดแผนที่</p>
         </div>
 
         <!-- การแจ้งเตือน -->
@@ -255,7 +255,7 @@
             
             <div v-if="filteredMaps.length === 0" class="text-center py-20 text-stone-600">
                 <i class="ph ph-map-trifold text-6xl mb-4 opacity-20"></i>
-                <p>ไม่พบแผนที่ที่เปิดใช้งานในขณะนี้ครับ</p>
+                <p>ไม่พบแผนที่ที่เปิดใช้งานในขณะนี้</p>
             </div>
         </div>
 
@@ -320,16 +320,16 @@
 
                                 <div v-if="getPlayersInCell(n).length > 0" class="w-full h-full flex items-center justify-center relative">
                                     <div class="relative w-full h-full flex items-center justify-center">
-                                        <!-- [แก้ไข] แสดงรูปตัวละครคนแรกเสมอ -->
+                                        <!-- แสดงรูปตัวละคร -->
                                         <img :src="getPlayersInCell(n)[0].avatar_url" 
                                              class="player-token" 
                                              :title="getPlayersInCell(n)[0].name"
                                              @error="handleImageError">
                                              
-                                        <!-- จุดสถานะ (ถ้ามี) -->
+                                        <!-- จุดสถานะ-->
                                         <div v-if="getPlayersInCell(n)[0].status" class="status-dot"></div>
                                         
-                                        <!-- [NEW] Badge แสดงจำนวนคนเพิ่มเติม (+n) -->
+                                        <!-- Badge แสดงจำนวนคนเพิ่มเติม (+n) -->
                                         <div v-if="getPlayersInCell(n).length > 1" class="player-count-badge">
                                             +{{ getPlayersInCell(n).length - 1 }}
                                         </div>
@@ -360,12 +360,12 @@
 
                     <div v-if="selectedCell.locked" class="mb-6 p-4 bg-red-950/20 border border-red-900/50 rounded-xl text-center">
                         <i class="ph ph-lock-key-open-bold text-5xl text-red-600 mb-3 block"></i>
-                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">พื้นที่ที่ถูกปิดกั้น</p>
+                        <p class="text-red-400 font-bold uppercase tracking-widest text-sm">พื้นที่ถูกปิดกั้น</p>
                         <p class="text-stone-400 text-sm mt-2 italic">{{ selectedCell.lockNote || 'ไม่ได้ระบุรายละเอียด' }}</p>
                     </div>
 
                     <div v-if="selectedCell.players.length > 0">
-                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">ตัวละครในช่องนี้ ({{ selectedCell.players.length }})</p>
+                        <p class="text-[10px] text-stone-500 font-bold uppercase tracking-[0.2em] mb-3">ตัวละครในตำแหน่งนี้ ({{ selectedCell.players.length }})</p>
                         <div class="space-y-3">
                             <div v-for="player in selectedCell.players" :key="player.player_id" class="flex items-center bg-stone-900/50 p-3 rounded-xl border border-stone-800 group hover:border-dnd-gold transition-all">
                                 <img :src="player.avatar_url" @error="handleImageError" class="w-14 h-14 rounded-full border-2 border-dnd-gold shadow-lg object-cover">
@@ -397,7 +397,7 @@
                 <div class="p-6 border-b border-stone-800 flex justify-between items-center bg-stone-900/40">
                     <div>
                         <h3 class="font-fantasy text-2xl text-dnd-gold">ใครอยู่ที่นี่</h3>
-                        <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ currentMapPlayers.length }} ตัวละครในอาณาจักร</p>
+                        <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ currentMapPlayers.length }} ตัวละคร</p>
                     </div>
                     <button @click="showPresenceModal = false" class="text-stone-500 hover:text-white bg-stone-800 p-2 rounded-full transition-all">
                         <i class="ph ph-x-bold"></i>
@@ -420,7 +420,7 @@
                         </div>
                         <div v-if="currentMapPlayers.length === 0" class="text-center py-20">
                             <i class="ph ph-users-three text-6xl text-stone-800 mb-4 block"></i>
-                            <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่ในอาณาจักรนี้</p>
+                            <p class="text-stone-600 font-fantasy">ไม่มีใครอยู่พิกัดนี้</p>
                         </div>
                     </div>
                 </div>
@@ -431,7 +431,7 @@
         <div v-if="showEmbedModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" @click.self="showEmbedModal = false">
             <div class="bg-dnd-card border-2 border-stone-700 rounded-3xl w-full max-w-lg p-10 shadow-2xl animate-fade-in">
                 <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-fantasy text-3xl text-dnd-gold">แชร์อาณาจักร</h3>
+                    <h3 class="font-fantasy text-3xl text-dnd-gold">แชร์แผนที่</h3>
                     <button @click="showEmbedModal = false" class="text-stone-500 hover:text-white"><i class="ph ph-x-bold text-2xl"></i></button>
                 </div>
                 <div class="space-y-6">
