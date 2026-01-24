@@ -1,6 +1,3 @@
-/* CSS สำหรับนำไปแยกไฟล์บน GitHub 
-           ทุก Class จะขึ้นต้นด้วย ken- เพื่อป้องกัน Style Conflict
-        */
         :root {
             --ken-primary: #6366f1;
             --ken-secondary: #a855f7;
@@ -71,7 +68,6 @@
             gap: 16px;
         }
 
-        /* ใช้ความเจาะจงสูงเพื่อไม่ให้กระทบรายละเอียดอื่นในเว็บ */
         .ken-list-stack details.ken-item {
             background: var(--ken-white);
             border-radius: 16px;
@@ -201,7 +197,7 @@
         }
 
         /* ตัวหนาหรือไฮไลท์สีส้ม */
-        .ken2-content-scroll strong, b, .ken2-highlight {
+        .ken2-rp-wrapper b, .ken2-highlight {
             color: var(--highlight-orange);
             font-weight: 700;
         }
