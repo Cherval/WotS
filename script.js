@@ -1528,7 +1528,10 @@ createApp({
                     || window.navigator.standalone
                     || document.referrer.includes('android-app://')
 
-                if (!isStandalone) {
+                // Check if user has already seen install instructions
+                const hasSeenInstructions = localStorage.getItem('pwa_install_seen') === 'true'
+
+                if (!isStandalone && !hasSeenInstructions) {
                     // Show install button after a short delay
                     setTimeout(() => {
                         if (!showInstallButton.value) {
@@ -1548,6 +1551,9 @@ createApp({
                 console.log('[PWA] User choice:', outcome)
                 deferredPrompt = null
                 showInstallButton.value = false
+                
+                // Mark as seen
+                localStorage.setItem('pwa_install_seen', 'true')
                 return
             }
 
@@ -1557,6 +1563,10 @@ createApp({
 
         function closeInstallModal() {
             showInstallModal.value = false
+            showInstallButton.value = false
+            
+            // Mark as seen so it won't show again
+            localStorage.setItem('pwa_install_seen', 'true')
         }
 
         // =====================================================================
