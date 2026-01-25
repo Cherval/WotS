@@ -142,11 +142,10 @@ createApp({
         const loading = ref(false)
         const currentView = ref('dashboard')
         const toasts = ref([])
-        const showInstallButton = ref(false)  // PWA Install Prompt
+        const showInstallButton = ref(false)  // PWA Install Prompt (Android only)
         const isIOS = ref(false)
         const isAndroid = ref(false)
         const isMobile = ref(false)
-        const showInstallModal = ref(false)
 
         // ----- Core Data Entities -----
         const currentUser = ref(null)
@@ -1521,11 +1520,10 @@ createApp({
                 showInstallButton.value = true
             }
 
-            // For mobile without beforeinstallprompt (especially iOS), show manual install button
-            if (isMobile.value) {
+            // For mobile without beforeinstallprompt (Android only, skip iOS)
+            if (isMobile.value && !isIOS.value) {
                 // Check if app is already installed (standalone mode)
                 const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-                    || window.navigator.standalone
                     || document.referrer.includes('android-app://')
 
                 // Check if user has already seen install instructions
@@ -1542,30 +1540,21 @@ createApp({
             }
         })
 
-        // PWA Install Handler
+        // PWA Install Handler (Android Chrome only)
         async function installPWA() {
-            // If we have the native prompt (Android Chrome), use it
-            if (deferredPrompt) {
-                deferredPrompt.prompt()
-                const { outcome } = await deferredPrompt.userChoice
-                console.log('[PWA] User choice:', outcome)
-                deferredPrompt = null
-                showInstallButton.value = false
-                
-                // Mark as seen
-                localStorage.setItem('pwa_install_seen', 'true')
+            if (!deferredPrompt) {
+                console.log('[PWA] No install prompt available')
                 return
             }
 
-            // Otherwise, show manual instructions modal
-            showInstallModal.value = true
-        }
-
-        function closeInstallModal() {
-            showInstallModal.value = false
-            showInstallButton.value = false
+            // Show the native install prompt
+            deferredPrompt.prompt()
+            const { outcome } = await deferredPrompt.userChoice
+            console.log('[PWA] User choice:', outcome)
             
-            // Mark as seen so it won't show again
+            // Clean up
+            deferredPrompt = null
+            showInstallButton.value = false
             localStorage.setItem('pwa_install_seen', 'true')
         }
 
@@ -1587,12 +1576,7 @@ createApp({
             currentUser,
             currentView,
             showInstallButton,
-            showInstallModal,
-            isIOS,
-            isAndroid,
-            isMobile,
             installPWA,
-            closeInstallModal,
 
             // ----- Data Collections -----
             players,
