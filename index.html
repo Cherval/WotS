@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <!-- =================================================================
+         WHISPER OF THE SHADOW - Main Application
+         =================================================================
+         Victorian Era RPG Character Management System
+         Built with Vue 3 + Tailwind CSS + Supabase
+         ================================================================= -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Whisper of the Shadow</title>
 
+    <!-- ================= Fonts ================= -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet" />
 
+    <!-- ================= External Libraries ================= -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- ================= Tailwind Configuration ================= -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
+                    // Custom Color Palette
                     colors: {
                         vic: {
                             black: '#1a1a1a',
@@ -27,14 +37,17 @@
                             darkbrown: '#3e2723'
                         }
                     },
+                    // Typography
                     fontFamily: {
                         serif: ['Merriweather', 'serif'],
                         thai: ['Sarabun', 'sans-serif']
                     },
+                    // Custom Animations
                     animation: {
                         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'pulse-glow': 'pulseGlow 2s infinite',
-                        'fade-in': 'fadeIn 0.3s ease-out'
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'wiggle': 'wiggle 0.3s ease-in-out infinite'
                     },
                     keyframes: {
                         slideUp: {
@@ -48,6 +61,10 @@
                         fadeIn: {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' }
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'translate(-50%, -50%) rotate(-3deg)' },
+                            '50%': { transform: 'translate(-50%, -50%) rotate(3deg)' }
                         }
                     }
                 }
@@ -55,7 +72,9 @@
         }
     </script>
 
+    <!-- ================= Custom Styles ================= -->
     <style type="text/tailwindcss">
+        /* ----- Base Styles ----- */
         body {
             font-family: 'Sarabun', 'Merriweather', sans-serif;
             background-color: #0f0f0f;
@@ -66,14 +85,24 @@
             font-family: 'Merriweather', serif;
         }
 
+        /* ----- Button Components ----- */
         .btn-gold {
-            @apply bg-gradient-to-r from-yellow-700 to-yellow-600 text-white px-4 py-2 rounded border border-yellow-400 cursor-pointer shadow-md flex items-center justify-center gap-2 transition hover:from-yellow-600 hover:to-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale;
+            @apply bg-gradient-to-r from-yellow-700 to-yellow-600 text-white px-4 py-2 rounded
+                   border border-yellow-400 cursor-pointer shadow-md
+                   flex items-center justify-center gap-2 transition
+                   hover:from-yellow-600 hover:to-yellow-500
+                   disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale;
         }
 
+        /* ----- Input Components ----- */
         .input-vic {
-            @apply bg-neutral-800 border border-yellow-600 text-yellow-100 rounded p-2 w-full focus:outline-none focus:border-yellow-400 placeholder-yellow-700/50 read-only:bg-neutral-900 read-only:text-gray-500 read-only:border-gray-700 read-only:cursor-not-allowed;
+            @apply bg-neutral-800 border border-yellow-600 text-yellow-100 rounded p-2 w-full
+                   focus:outline-none focus:border-yellow-400 placeholder-yellow-700/50
+                   read-only:bg-neutral-900 read-only:text-gray-500
+                   read-only:border-gray-700 read-only:cursor-not-allowed;
         }
 
+        /* ----- Tab Components ----- */
         .tab-btn {
             @apply px-4 py-2 text-sm font-bold border-b-2 transition-colors flex-1;
         }
@@ -86,6 +115,7 @@
             @apply border-transparent text-gray-500 hover:text-gray-300;
         }
 
+        /* ----- Status Modifiers ----- */
         .status-vip {
             @apply shadow-[0_0_15px_rgba(212,175,55,0.6)] border-yellow-300 animate-pulse-glow;
         }
@@ -98,6 +128,7 @@
             @apply blur-sm pointer-events-none select-none grayscale;
         }
 
+        /* ----- Custom Scrollbar ----- */
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -116,6 +147,7 @@
             background: #d4af37;
         }
 
+        /* ----- Vue Cloak ----- */
         [v-cloak] {
             display: none !important;
         }
@@ -125,9 +157,12 @@
 <body class="bg-neutral-950 text-vic-cream min-h-screen relative overflow-x-hidden">
     <div id="app" v-cloak class="pb-20">
 
-        <!-- Toasts -->
+        <!-- =================================================================
+             SECTION: Toast Notifications
+             ================================================================= -->
         <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[200] flex flex-col gap-3 pointer-events-none items-center w-full px-4">
-            <div v-for="toast in toasts" :key="toast.id"
+            <div v-for="toast in toasts"
+                 :key="toast.id"
                  class="pointer-events-auto min-w-[300px] md:min-w-[450px] p-5 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.8)] border-l-8 flex items-center gap-5 animate-slide-up bg-vic-darkbrown text-white border-y border-r border-y-vic-gold/30 backdrop-blur-md"
                  :class="toast.type === 'error' ? 'border-l-red-600' : 'border-l-green-600'">
                 <div class="text-3xl">{{ toast.type === 'error' ? '❌' : '✅' }}</div>
@@ -138,13 +173,17 @@
             </div>
         </div>
 
-        <!-- Loading Overlay -->
+        <!-- =================================================================
+             SECTION: Loading Overlay
+             ================================================================= -->
         <div v-if="loading" class="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center flex-col backdrop-blur-sm">
             <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-vic-gold mb-4"></div>
             <p class="text-vic-gold animate-pulse text-lg tracking-widest font-serif">กำลังโหลดข้อมูล...</p>
         </div>
 
-        <!-- Login -->
+        <!-- =================================================================
+             SECTION: Login Screen
+             ================================================================= -->
         <div v-if="!session" class="flex items-center justify-center min-h-screen bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')]">
             <div class="bg-vic-darkbrown p-8 rounded border-2 border-vic-gold shadow-2xl w-96 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-vic-gold"></div>
@@ -157,9 +196,13 @@
             </div>
         </div>
 
-        <!-- App -->
+        <!-- =================================================================
+             SECTION: Main Application (Authenticated)
+             ================================================================= -->
         <div v-else>
-            <!-- Header / Hero -->
+            <!-- =========================================================
+                 HEADER / HERO SECTION
+                 ========================================================= -->
             <div class="w-full h-64 bg-cover bg-center relative border-b-4 border-vic-gold"
                  :style="{ backgroundImage: 'url(' + headerImg + ')' }">
                 <div class="absolute inset-0 bg-black/60 flex items-center justify-center flex-col">
@@ -169,12 +212,16 @@
                     <p class="text-vic-cream/80 mt-2 text-xl font-serif">เสียงเพรียกแห่งเงามืด</p>
                 </div>
 
+                <!-- User Info & SP Badge -->
                 <div class="absolute top-4 right-4 flex items-center gap-3">
-                    <button v-if="currentUser?.skill_points > 0" @click="openUpgradeModal(currentUser)"
+                    <!-- SP Notification Badge -->
+                    <button v-if="currentUser?.skill_points > 0"
+                            @click="openUpgradeModal(currentUser)"
                             class="bg-green-700/90 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold border border-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)] flex items-center gap-1">
                         💪 SP <span class="bg-black/30 px-1 rounded">{{ currentUser.skill_points }}</span>
                     </button>
 
+                    <!-- User Profile -->
                     <div class="bg-black/80 p-1 px-3 rounded border border-vic-gold flex items-center gap-3">
                         <img :src="currentUser?.character_img_url || 'https://via.placeholder.com/50'"
                              class="w-8 h-8 rounded-full border border-vic-gold object-cover" />
@@ -182,7 +229,8 @@
                             <p class="text-vic-gold font-bold text-sm leading-tight">{{ currentUser?.character_name || 'ผู้เยี่ยมชม' }}</p>
                             <p class="text-[10px] uppercase text-gray-400 leading-tight">{{ roleLabel(currentUser?.role) }}</p>
                         </div>
-                        <button @click="handleLogout" :disabled="loading"
+                        <button @click="handleLogout"
+                                :disabled="loading"
                                 class="text-xs text-red-400 hover:text-red-300 border border-red-900 p-1 rounded hover:bg-red-900/30">
                             ออก
                         </button>
@@ -190,8 +238,11 @@
                 </div>
             </div>
 
-            <!-- Navigation -->
+            <!-- =========================================================
+                 NAVIGATION BAR
+                 ========================================================= -->
             <nav class="bg-vic-darkbrown border-b border-vic-gold sticky top-0 z-40 shadow-xl flex justify-center gap-1 overflow-x-auto">
+                <!-- Dashboard -->
                 <button @click="currentView = 'dashboard'"
                         :class="currentView === 'dashboard' ? 'bg-vic-gold text-black font-bold' : 'text-vic-cream hover:bg-white/5'"
                         class="px-6 py-3 uppercase text-sm whitespace-nowrap">
@@ -233,20 +284,38 @@
                         class="px-6 py-3 uppercase text-sm whitespace-nowrap">
                     แผนที่
                 </button>
+
+                <button @click="currentView = 'logs'; fetchTransactionLogs()"
+                        :class="currentView === 'logs' ? 'bg-vic-gold text-black font-bold' : 'text-vic-cream hover:bg-white/5'"
+                        class="px-6 py-3 uppercase text-sm whitespace-nowrap">
+                    📋 Log
+                </button>
             </nav>
 
-            <!-- Main Content -->
+            <!-- =========================================================
+                 MAIN CONTENT AREA
+                 ========================================================= -->
             <main class="container mx-auto p-4 md:p-8 min-h-screen">
 
-                <!-- Dashboard -->
+                <!-- =======================================================
+                     VIEW: Dashboard
+                     ======================================================= -->
 <div v-if="currentView === 'dashboard'" class="max-w-4xl mx-auto animate-fade-in">
 
                   <div class="bg-vic-darkbrown p-6 rounded border border-vic-gold flex flex-col md:flex-row gap-6 items-stretch shadow-2xl relative overflow-hidden">
                     <!-- Left: Portrait -->
-                    <div class="w-full md:w-1/3 text-center">
-                      <img :src="currentUser?.character_img_url || 'https://via.placeholder.com/300'" class="w-full h-64 object-cover border-4 border-vic-gold rounded shadow-lg mb-4" />
-                      <div class="text-sm text-gray-400">{{ currentUser?.name || '-' }}</div>
-                      <div class="mt-3 flex justify-center gap-2">
+                    <div class="w-full md:w-1/3 text-center relative group isolate">
+                        <!-- Ambient Light Effect -->
+                        <div class="absolute inset-0 bg-cover bg-center rounded-lg blur-3xl opacity-60 scale-125 transition-opacity duration-1000 animate-pulse-slow pointer-events-none -z-10 mix-blend-screen"
+                             :style="{ backgroundImage: `url(${currentUser?.character_img_url || 'https://via.placeholder.com/300'})` }">
+                        </div>
+                        
+                        <!-- Glow behind image -->
+                         <div class="absolute inset-4 bg-vic-gold/30 rounded-full blur-2xl -z-10 animate-pulse"></div>
+
+                      <img :src="currentUser?.character_img_url || 'https://via.placeholder.com/300'" class="w-full h-64 object-cover border-4 border-vic-gold rounded shadow-2xl mb-4 relative z-10" />
+                      <div class="text-sm text-gray-400 relative z-10">{{ currentUser?.name || '-' }}</div>
+                      <div class="mt-3 flex justify-center gap-2 relative z-10">
                         <button @click="openEmbedModal(currentUser)" class="px-3 py-1 text-xs bg-black/60 text-vic-gold rounded border border-vic-gold/30">Embed</button>
                         <button @click="openEditModal(currentUser, 'player')" v-if="isAdmin || currentUser?.id" class="px-3 py-1 text-xs bg-blue-900 text-blue-200 rounded border border-blue-700">แก้ไข</button>
                       </div>
@@ -278,10 +347,29 @@
                         </div>
                       </div>
 
+                      <!-- Combat Stats: HP, ATK, AC -->
+                      <div class="mb-4">
+                        <h3 class="text-sm text-vic-gold uppercase font-bold mb-2">ค่าต่อสู้</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                          <div class="bg-red-900/20 p-3 rounded border border-red-900/50 text-center">
+                            <div class="text-[10px] text-red-400 uppercase font-bold">HP</div>
+                            <div class="text-2xl font-bold text-red-500">{{ currentUser?.hp ?? 0 }}</div>
+                          </div>
+                          <div class="bg-orange-900/20 p-3 rounded border border-orange-900/50 text-center">
+                            <div class="text-[10px] text-orange-400 uppercase font-bold">ATK</div>
+                            <div class="text-2xl font-bold text-orange-500">{{ currentUser?.atk ?? 0 }}</div>
+                          </div>
+                          <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50 text-center">
+                            <div class="text-[10px] text-blue-400 uppercase font-bold">AC</div>
+                            <div class="text-2xl font-bold text-blue-300">{{ currentUser?.ac ?? 10 }}</div>
+                          </div>
+                        </div>
+                      </div>
+
                       <!-- Stats summary -->
                       <div class="mb-4">
                         <h3 class="text-sm text-vic-gold uppercase font-bold mb-2">ค่าพลัง</h3>
-                        <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        <div class="grid grid-cols-3 md:grid-cols-7 gap-2">
                           <div v-for="stat in statsConfig" :key="stat.key" class="bg-neutral-800 p-2 rounded border border-vic-brown text-center">
                             <div class="text-[10px] text-gray-400 uppercase">{{ stat.label }}</div>
                             <div class="text-lg font-bold">{{ currentUser?.[stat.key] ?? 10 }}</div>
@@ -292,15 +380,14 @@
                         </div>
                       </div>
 
-                      <!-- Skills preview (if available on currentUser or separate module) -->
+                      <!-- Skills preview (using currentUserSkills from player_skills table) -->
                       <div class="mb-2">
-                        <h3 class="text-sm text-vic-gold uppercase font-bold mb-2">สกิล </h3>
+                        <h3 class="text-sm text-vic-gold uppercase font-bold mb-2">สกิล</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                           <div v-for="(label, key) in skillLabels" :key="key" class="bg-black/20 p-2 rounded border border-white/5 text-[12px] flex justify-between">
                             <span class="truncate text-gray-300">{{ label }}</span>
-                            <!-- ถ้า currentUser มีค่า skill fields ให้แสดง มิฉะนั้นจะโชว์ '-' -->
-                            <span class="font-mono font-bold" :class="(currentUser?.[key] > 0) ? 'text-green-400' : 'text-gray-600'">
-                              {{ currentUser?.[key] ? (currentUser[key] > 0 ? '+'+currentUser[key] : currentUser[key]) : '-' }}
+                            <span class="font-mono font-bold" :class="(currentUserSkills[key] || 0) > 0 ? 'text-green-400' : ((currentUserSkills[key] || 0) < 0 ? 'text-red-400' : 'text-gray-600')">
+                              {{ currentUserSkills[key] !== undefined ? (currentUserSkills[key] >= 0 ? '+' + currentUserSkills[key] : currentUserSkills[key]) : '+0' }}
                             </span>
                           </div>
                         </div>
@@ -339,7 +426,9 @@
 
 </div>
 
-                <!-- Inventory -->
+                <!-- =======================================================
+                     VIEW: Inventory
+                     ======================================================= -->
                 <div v-if="currentView === 'inventory'" class="animate-fade-in">
                     <div class="flex flex-col md:flex-row gap-4 mb-6">
                         <div class="flex-1 bg-gradient-to-r from-yellow-900/40 to-black border border-yellow-600 p-6 rounded-lg flex items-center justify-between shadow-lg">
@@ -412,7 +501,9 @@
                     </div>
                 </div>
 
-                <!-- Shop -->
+                <!-- =======================================================
+                     VIEW: Shop
+                     ======================================================= -->
                 <div v-if="currentView === 'shop'" class="animate-fade-in">
                     <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
                         <div>
@@ -451,7 +542,9 @@
                     </div>
                 </div>
 
-                <!-- Players -->
+                <!-- =======================================================
+                     VIEW: Players List
+                     ======================================================= -->
                 <div v-if="currentView === 'players'" class="animate-fade-in">
                     <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
                         <h2 class="text-2xl text-vic-gold font-bold font-serif">ทำเนียบตัวละคร</h2>
@@ -525,7 +618,9 @@
                     </div>
                 </div>
 
-                <!-- Enemies -->
+                <!-- =======================================================
+                     VIEW: Enemies List
+                     ======================================================= -->
                 <div v-if="currentView === 'enemies'" class="animate-fade-in">
                     <div class="flex justify-between items-center mb-6 bg-red-950/30 p-4 rounded border border-red-900">
                         <h2 class="text-2xl text-red-500 font-bold font-serif">บัญชีศัตรู</h2>
@@ -552,7 +647,9 @@
                     </div>
                 </div>
 
-                <!-- Magic / Pathways & Sequences -->
+                <!-- =======================================================
+                     VIEW: Magic / Pathways & Sequences (Admin)
+                     ======================================================= -->
                 <div v-if="currentView === 'magic'" class="animate-fade-in max-w-5xl mx-auto">
                     <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
                         <h2 class="text-2xl text-vic-gold font-bold font-serif">Pathways & Sequences</h2>
@@ -598,7 +695,9 @@
                     </div>
                 </div>
 
-                <!-- Map List -->
+                <!-- =======================================================
+                     VIEW: Map List
+                     ======================================================= -->
                 <div v-if="currentView === 'map'" class="animate-fade-in">
                     <div class="flex justify-between items-center mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
                         <h2 class="text-2xl text-vic-gold font-bold font-serif">แผนที่โลก (World Maps)</h2>
@@ -624,42 +723,216 @@
                     </div>
                 </div>
 
-                <!-- Map Detail -->
+                <!-- =======================================================
+                     VIEW: Map Detail (Free-form Drag & Drop)
+                     ======================================================= -->
                 <div v-if="currentView === 'map_detail'" class="animate-fade-in h-[calc(100vh-150px)] flex flex-col">
+                    <!-- Header Bar -->
                     <div class="flex justify-between items-center mb-2 bg-black/50 p-2 rounded border-b border-vic-gold">
                         <div class="flex items-center gap-3">
-                            <button @click="currentView = 'map'" class="text-vic-gold hover:text-white">❮ กลับ</button>
+                            <button @click="currentView = 'map'; isMapEditMode = false" class="text-vic-gold hover:text-white">❮ กลับ</button>
                             <h2 class="text-xl font-bold text-white">{{ currentMap.name }}</h2>
                         </div>
-                        <div class="text-xs text-gray-400">คลิกที่ช่องเพื่อดู/วางตัวละคร</div>
+                        <div class="flex items-center gap-3">
+                            <span v-if="isMapEditMode" class="text-xs text-yellow-400 animate-pulse">🔧 โหมดแก้ไข</span>
+                            <span v-else class="text-xs text-gray-400">คลิกที่ตัวละครเพื่อดูรายละเอียด</span>
+                            <button v-if="isAdmin" @click="toggleMapEditMode" 
+                                    class="px-3 py-1 text-xs rounded border transition font-bold"
+                                    :class="isMapEditMode ? 'bg-yellow-600 text-black border-yellow-400' : 'bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700'">
+                                {{ isMapEditMode ? '✓ เสร็จสิ้น' : '✏️ แก้ไขตำแหน่ง' }}
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Map Container -->
                     <div class="flex-1 overflow-auto bg-neutral-900 relative flex justify-center items-start p-4 border border-vic-brown custom-scroll rounded-lg shadow-inner">
-                        <div class="relative min-w-[800px] w-[1000px] max-w-full aspect-square bg-black shadow-2xl">
-                            <img :src="currentMap.image_url" class="absolute inset-0 w-full h-full object-cover" />
+                        <div class="relative min-w-[800px] w-[1000px] max-w-full aspect-square bg-black shadow-2xl select-none"
+                             @click="handleMapClick"
+                             @mousemove="onDrag"
+                             @mouseup="endDrag"
+                             @mouseleave="endDrag"
+                             @touchstart="handleTouchStart"
+                             @touchmove="handleTouchMove"
+                             @touchend="handleTouchEnd">
+                            
+                            <!-- Map Background -->
+                            <img :src="currentMap.image_url" class="absolute inset-0 w-full h-full object-cover pointer-events-none" draggable="false" />
 
-                            <div class="absolute inset-0 grid grid-cols-12 grid-rows-12 border border-vic-gold/30">
-                                <div v-for="n in 144" :key="n"
-                                     @click="handleCellClick(((n-1)%12)+1, Math.ceil(n/12))"
-                                     class="relative border border-white/10 hover:bg-white/10 cursor-pointer transition flex items-center justify-center group"
-                                     :title="`X: ${((n-1)%12)+1}, Y: ${Math.ceil(n/12)}`">
-
-                                    <div v-if="getOccupants(((n-1)%12)+1, Math.ceil(n/12)).length > 0" class="flex -space-x-2">
-                                        <template v-for="(occ, idx) in getOccupants(((n-1)%12)+1, Math.ceil(n/12)).slice(0,3)">
-                                            <div class="w-6 h-6 rounded-full border border-white shadow-lg overflow-hidden relative"
-                                                 :class="currentUser?.id === occ.id ? 'ring-2 ring-green-500 z-10 scale-110' : 'z-0'">
-                                                <img :src="occ.character_img_url" class="w-full h-full object-cover" />
-                                            </div>
-                                        </template>
-
-                                        <div v-if="getOccupants(((n-1)%12)+1, Math.ceil(n/12)).length > 3"
-                                             class="w-6 h-6 rounded-full bg-vic-gold text-black flex items-center justify-center text-[10px] font-bold border border-white z-20">
-                                            +{{ getOccupants(((n-1)%12)+1, Math.ceil(n/12)).length - 3 }}
+                            <!-- Character Markers -->
+                            <template v-for="char in getMapCharacters()" :key="char.id">
+                                <div class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
+                                     :style="{ 
+                                         left: (draggingCharacter?.id === char.id ? dragPosition.x : char.pos_x_percent) + '%', 
+                                         top: (draggingCharacter?.id === char.id ? dragPosition.y : char.pos_y_percent) + '%',
+                                         transition: draggingCharacter?.id === char.id ? 'none' : 'left 0.1s, top 0.1s'
+                                     }"
+                                     :class="{
+                                         'animate-wiggle': isMapEditMode && draggingCharacter?.id !== char.id,
+                                         'z-50 scale-110': draggingCharacter?.id === char.id,
+                                         'ring-4 ring-green-500': currentUser?.id === char.id
+                                     }"
+                                     @mousedown="startDrag($event, char)"
+                                     @click.stop="!isMapEditMode && showFullDetail(char, char.is_enemy ? 'enemy' : 'player')">
+                                    
+                                    <!-- Character Avatar -->
+                                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white shadow-lg overflow-hidden bg-black transition-transform relative"
+                                         :class="{
+                                             'border-green-500 ring-2 ring-green-500 ring-offset-2 ring-offset-black': currentUser?.id === char.id,
+                                             'scale-125 shadow-2xl border-yellow-400': draggingCharacter?.id === char.id,
+                                             'hover:scale-110': !isMapEditMode,
+                                             'border-red-600 shadow-[0_0_30px_#ef4444] ring-2 ring-red-600 ring-offset-2 ring-offset-black z-20': char.is_enemy
+                                         }">
+                                        <img :src="char.character_img_url" class="w-full h-full object-cover" draggable="false" />
+                                        
+                                        <!-- Red Glow Overlay for Enemies -->
+                                        <div v-if="char.is_enemy" class="absolute inset-0 bg-red-600/30 rounded-full animate-pulse pointer-events-none border-2 border-red-500 shadow-[inset_0_0_15px_rgba(255,0,0,0.8)]"></div>
+                                        
+                                        <!-- Evil Icon Badge -->
+                                        <div v-if="char.is_enemy" class="absolute -top-2 -right-2 bg-black text-red-500 rounded-full border border-red-500 w-5 h-5 flex items-center justify-center text-[10px] shadow-sm z-30">
+                                            ⚔️
                                         </div>
                                     </div>
 
-                                    <div v-if="getOccupants(((n-1)%12)+1, Math.ceil(n/12)).some(o => o.id === currentUser?.id)" class="absolute inset-0 border-2 border-green-500 animate-pulse pointer-events-none shadow-[inset_0_0_10px_rgba(34,197,94,0.5)]"></div>
+                                    <!-- Delete Button (Edit Mode) -->
+                                    <button v-if="isMapEditMode && isAdmin && draggingCharacter?.id !== char.id" 
+                                            @mousedown.stop
+                                            @touchstart.stop
+                                            @click.stop="removePosition(char.pos_id)"
+                                            class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg hover:bg-red-500 border border-red-400 z-30">
+                                        ✕
+                                    </button>
+
+                                    <!-- Character Name Tooltip -->
+                                    <div v-if="!isMapEditMode" class="absolute left-1/2 -translate-x-1/2 -bottom-6 bg-black/90 text-white text-[10px] px-2 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-vic-gold/50">
+                                        {{ char.character_name }}
+                                    </div>
                                 </div>
+                            </template>
+
+                            <!-- Click to Place Hint (Admin, non-edit mode) -->
+                            <div v-if="isAdmin && !isMapEditMode && getMapCharacters().length === 0" 
+                                 class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div class="bg-black/60 text-vic-gold px-4 py-2 rounded border border-vic-gold/50 text-sm">
+                                    คลิกที่แผนที่เพื่อวางตัวละคร
+                                </div>
+                            </div>
+
+                            <!-- Mobile Long Press Hint -->
+                            <div v-if="isAdmin && !isMapEditMode" 
+                                 class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-gray-400 px-3 py-1 rounded text-xs md:hidden">
+                                กดค้าง 1 วินาทีเพื่อแก้ไขตำแหน่ง
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW: Transaction Logs
+                     ======================================================= -->
+                <div v-if="currentView === 'logs'" class="animate-fade-in max-w-5xl mx-auto">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-vic-darkbrown p-4 rounded border border-vic-brown">
+                        <h2 class="text-2xl text-vic-gold font-bold font-serif">📋 บันทึกธุรกรรม</h2>
+                        
+                        <!-- Filter -->
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <input v-model="logsFilter" 
+                                   @keyup.enter="applyLogFilter"
+                                   placeholder="ค้นหาชื่อผู้เล่น..." 
+                                   class="input-vic flex-1 md:w-48 text-sm" />
+                            <button @click="applyLogFilter" class="px-4 py-2 bg-vic-gold text-black rounded font-bold text-sm hover:bg-white">
+                                🔍
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading -->
+                    <div v-if="logsLoading" class="text-center py-20 text-gray-500">
+                        <div class="animate-spin inline-block w-8 h-8 border-4 border-vic-gold border-t-transparent rounded-full mb-4"></div>
+                        <p>กำลังโหลด...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div v-else-if="transactionLogs.length === 0" class="text-center py-20 text-gray-500 border-2 border-dashed border-gray-700 rounded-lg">
+                        ไม่มีรายการธุรกรรม
+                    </div>
+
+                    <!-- Logs Table -->
+                    <div v-else class="bg-vic-darkbrown rounded border border-vic-brown overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-black/30 border-b border-vic-brown">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-vic-gold font-bold">เวลา</th>
+                                        <th class="px-4 py-3 text-left text-vic-gold font-bold">ประเภท</th>
+                                        <th class="px-4 py-3 text-left text-vic-gold font-bold">ผู้ทำรายการ</th>
+                                        <th class="px-4 py-3 text-left text-vic-gold font-bold">ผู้รับ/เป้าหมาย</th>
+                                        <th class="px-4 py-3 text-left text-vic-gold font-bold">รายละเอียด</th>
+                                        <th class="px-4 py-3 text-right text-vic-gold font-bold">จำนวน</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="log in transactionLogs" :key="log.id" 
+                                        class="border-b border-gray-800 hover:bg-white/5 transition"
+                                        :class="{
+                                            'bg-yellow-900/10': log.action_type === 'money_grant',
+                                            'bg-red-900/10': log.action_type === 'item_delete' || log.action_type === 'item_discard'
+                                        }">
+                                        <td class="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{{ formatLogDate(log.created_at) }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <span class="text-xs px-2 py-1 rounded"
+                                                  :class="{
+                                                      'bg-purple-900/50 text-purple-300': log.action_type.includes('transfer'),
+                                                      'bg-yellow-900/50 text-yellow-300': log.action_type === 'money_grant',
+                                                      'bg-blue-900/50 text-blue-300': log.action_type === 'item_use',
+                                                      'bg-green-900/50 text-green-300': log.action_type === 'item_create' || log.action_type === 'item_buy',
+                                                      'bg-red-900/50 text-red-300': log.action_type === 'item_delete' || log.action_type === 'item_discard' || log.action_type === 'item_sell',
+                                                      'bg-gray-800 text-gray-300': log.action_type.includes('bank')
+                                                  }">
+                                                {{ getActionLabel(log.action_type) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-white font-medium">{{ log.actor_name || '-' }}</td>
+                                        <td class="px-4 py-3 text-gray-300">{{ log.target_name || '-' }}</td>
+                                        <td class="px-4 py-3 text-gray-400 text-xs">{{ log.item_name || (log.details?.note || '-') }}</td>
+                                        <td class="px-4 py-3 text-right font-bold"
+                                            :class="{
+                                                'text-green-400': log.amount > 0,
+                                                'text-red-400': log.amount < 0,
+                                                'text-gray-500': !log.amount
+                                            }">
+                                            {{ log.amount ? (log.amount > 0 ? '+' : '') + log.amount : '-' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="flex items-center justify-between p-4 bg-black/20 border-t border-vic-brown">
+                            <div class="text-sm text-gray-400">
+                                หน้า {{ logsPage }} / {{ logsTotalPages }}
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <button @click="prevLogPage" 
+                                        :disabled="logsPage <= 1 || logsLoading"
+                                        class="px-3 py-1 rounded border border-gray-600 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+                                    ❮
+                                </button>
+                                
+                                <input type="number" 
+                                       v-model.number="logsPage" 
+                                       @keyup.enter="goToLogPage(logsPage)"
+                                       @blur="goToLogPage(logsPage)"
+                                       min="1" 
+                                       :max="logsTotalPages"
+                                       class="w-16 px-2 py-1 bg-black/50 border border-gray-600 rounded text-center text-white text-sm" />
+                                
+                                <button @click="nextLogPage" 
+                                        :disabled="logsPage >= logsTotalPages || logsLoading"
+                                        class="px-3 py-1 rounded border border-gray-600 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+                                    ❯
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -667,7 +940,11 @@
 
             </main>
 
-            <!-- Modals (transfer, bank, grantMoney, item, bank, upgrade, etc.) -->
+            <!-- =========================================================
+                 MODALS SECTION
+                 ========================================================= -->
+
+            <!-- Modal: Item Transfer -->
             <div v-if="modals.transfer" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-purple-500 w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.transfer = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -682,10 +959,23 @@
                     </div>
 
                     <label class="text-xs text-gray-400 mb-1 block">ส่งให้ใคร?</label>
-                    <select v-model="transferData.targetId" class="input-vic mb-3">
-                        <option value="" disabled>-- เลือกรายชื่อ --</option>
-                        <option v-for="p in otherPlayers" :key="p.id" :value="p.id">{{ p.character_name }}</option>
-                    </select>
+                    <div class="relative group mb-3">
+                        <input type="text" v-model="transferSearch" 
+                               placeholder="ค้นหาชื่อผู้เล่น..."
+                               class="input-vic w-full"
+                               @input="transferData.targetId = ''" />
+                        <div v-if="transferSearch && !transferData.targetId" class="absolute left-0 right-0 top-full mt-1 bg-black border border-gray-600 rounded max-h-40 overflow-y-auto z-50 shadow-xl">
+                            <div v-if="itemTransferPlayers.length === 0" class="p-2 text-gray-500 text-xs italic">ไม่พบชื่อนี้</div>
+                            <div v-for="p in itemTransferPlayers" :key="p.id" 
+                                 @click="selectItemTransferTarget(p)"
+                                 class="p-2 hover:bg-vic-gold hover:text-black cursor-pointer text-sm border-b border-gray-800 last:border-0">
+                                <span class="font-bold">{{ p.character_name }}</span> 
+                                <span class="text-xs opacity-70">({{ p.name }})</span>
+                            </div>
+                        </div>
+                         <!-- Selected Indicator -->
+                         <div v-if="transferData.targetId" class="absolute right-2 top-2 text-green-500 font-bold text-xs pointer-events-none">✓</div>
+                    </div>
 
                     <label class="text-xs text-gray-400 mb-1 block">จำนวน</label>
                     <input type="number" v-model.number="transferData.amount" min="1" :max="transferData.item.quantity" class="input-vic mb-4" />
@@ -694,6 +984,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Money Transfer -->
             <div v-if="modals.transferMoney" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-purple-500 w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.transferMoney = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -702,10 +993,23 @@
                     <p class="text-xs text-center text-gray-400 mb-4">จากยอดธนาคาร: <span class="text-blue-400 font-bold">฿{{ currentUser.bank_balance }}</span></p>
 
                     <label class="text-xs text-gray-400 mb-1 block">โอนให้ใคร?</label>
-                    <select v-model="transferMoneyData.targetId" class="input-vic mb-3">
-                        <option value="" disabled>-- เลือกรายชื่อ --</option>
-                        <option v-for="p in otherPlayers" :key="p.id" :value="p.id">{{ p.character_name }}</option>
-                    </select>
+                    <div class="relative group mb-3">
+                        <input type="text" v-model="transferMoneySearch" 
+                               placeholder="ค้นหาชื่อผู้เล่น..."
+                               class="input-vic w-full"
+                               @input="transferMoneyData.targetId = ''" />
+                        <div v-if="transferMoneySearch && !transferMoneyData.targetId" class="absolute left-0 right-0 top-full mt-1 bg-black border border-gray-600 rounded max-h-40 overflow-y-auto z-50 shadow-xl">
+                            <div v-if="moneyTransferPlayers.length === 0" class="p-2 text-gray-500 text-xs italic">ไม่พบชื่อนี้</div>
+                            <div v-for="p in moneyTransferPlayers" :key="p.id" 
+                                 @click="selectMoneyTransferTarget(p)"
+                                 class="p-2 hover:bg-vic-gold hover:text-black cursor-pointer text-sm border-b border-gray-800 last:border-0">
+                                <span class="font-bold">{{ p.character_name }}</span> 
+                                <span class="text-xs opacity-70">({{ p.name }})</span>
+                            </div>
+                        </div>
+                        <!-- Selected Indicator -->
+                        <div v-if="transferMoneyData.targetId" class="absolute right-2 top-2 text-green-500 font-bold text-xs pointer-events-none">✓</div>
+                    </div>
 
                     <label class="text-xs text-gray-400 mb-1 block">จำนวนเงิน</label>
                     <input type="number" v-model.number="transferMoneyData.amount" min="1" class="input-vic mb-6 text-center text-xl font-bold" />
@@ -714,6 +1018,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Grant Money (Admin) -->
             <div v-if="modals.grantMoney" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-yellow-500 w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.grantMoney = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -726,6 +1031,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Item Form (Admin - Create/Edit Shop Item) -->
             <div v-if="modals.item" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-blue-500 w-full max-w-lg relative shadow-2xl animate-fade-in">
                     <button @click="modals.item = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -782,6 +1088,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Bank (Deposit/Withdraw) -->
             <div v-if="modals.bank" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-sm relative shadow-2xl animate-fade-in">
                     <button @click="modals.bank = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -802,6 +1109,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Stat Upgrade (Spend SP) -->
             <div v-if="modals.upgrade" class="fixed inset-0 bg-black/90 z-[85] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown w-full max-w-2xl rounded border-2 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)] flex flex-col relative animate-fade-in">
                     <div class="p-4 border-b border-green-900/50 bg-black/30 flex justify-between items-center">
@@ -839,6 +1147,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Grant SP (Admin) -->
             <div v-if="modals.grant" class="fixed inset-0 bg-black/90 z-[80] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-purple-500 w-full max-w-sm relative shadow-2xl">
                     <button @click="modals.grant = false" class="absolute top-2 right-4 text-gray-400 hover:text-white text-xl">✕</button>
@@ -853,6 +1162,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Create Character -->
             <div v-if="modals.create" class="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-green-600 w-full max-w-lg relative shadow-2xl animate-fade-in">
                     <button @click="modals.create = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
@@ -895,6 +1205,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Edit Character -->
             <div v-if="modals.edit" class="fixed inset-0 bg-black/95 z-[150] flex items-center justify-center p-4 backdrop-blur-md">
                 <div class="bg-vic-darkbrown w-full max-w-2xl rounded border-2 border-blue-500 shadow-2xl flex flex-col relative animate-slide-up max-h-[90vh]">
                     
@@ -988,6 +1299,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Embed Code -->
             <div v-if="modals.embed" class="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-lg relative shadow-2xl animate-slide-up">
                     <button @click="modals.embed = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
@@ -1004,21 +1316,68 @@
                 </div>
             </div>
 
+            <!-- Modal: Nearby Characters (Map) -->
+            <div v-if="modalNearbyCharacters" class="fixed inset-0 bg-black/90 z-[130] flex items-center justify-center p-4 backdrop-blur-sm" @click.self="modalNearbyCharacters = false">
+                <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-md relative shadow-2xl animate-slide-up">
+                    <button @click="modalNearbyCharacters = false" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">✕</button>
+                    <h3 class="text-xl text-vic-gold font-bold mb-4 text-center">👥 ตัวละครบริเวณนี้</h3>
+                    
+                    <div class="max-h-[60vh] overflow-y-auto custom-scroll space-y-2">
+                        <div v-for="char in nearbyCharacters" :key="char.id" 
+                             @click="showFullDetail(char, 'player'); modalNearbyCharacters = false"
+                             class="flex items-center gap-3 p-3 bg-black/30 rounded border border-gray-700 hover:border-vic-gold cursor-pointer transition group">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-vic-gold shrink-0">
+                                <img :src="char.character_img_url" class="w-full h-full object-cover" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-vic-gold font-bold truncate group-hover:text-white transition">{{ char.character_name }}</div>
+                                <div class="text-xs text-gray-400">{{ char.pathways }} (Seq {{ char.sequence }})</div>
+                            </div>
+                            <div class="text-gray-500 group-hover:text-vic-gold transition">→</div>
+                        </div>
+                    </div>
+
+                    <!-- Admin: Add more characters here -->
+                    <div v-if="isAdmin" class="mt-4 pt-4 border-t border-gray-700">
+                        <button @click="modalNearbyCharacters = false; openPlaceModalAtPosition(clickedPosition.x, clickedPosition.y)" 
+                                class="w-full bg-green-900 text-green-200 py-2 rounded border border-green-700 hover:bg-green-800 text-sm font-bold">
+                            + วางตัวละครเพิ่มที่นี่
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal: Confirmation Dialog -->
             <div v-if="modals.confirm" class="fixed inset-0 bg-black/90 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
-                <div class="bg-vic-darkbrown p-6 rounded border-2 w-full max-w-md relative shadow-2xl text-center" :class="modals.confirm.type === 'delete' ? 'border-red-600' : 'border-vic-gold'">
-                    <h3 class="text-2xl font-bold mb-4" :class="modals.confirm.type === 'delete' ? 'text-red-500' : 'text-vic-gold'">{{ modals.confirm.title }}</h3>
-                    <p class="text-gray-300 mb-6">{{ modals.confirm.message }}</p>
+                <div class="bg-vic-darkbrown p-6 rounded border-2 w-full max-w-md relative shadow-2xl text-center" 
+                     :class="{
+                         'border-red-600': modals.confirm.type === 'delete',
+                         'border-vic-gold': modals.confirm.type === 'confirm',
+                         'border-blue-500': modals.confirm.type === 'use'
+                     }">
+                    <h3 class="text-2xl font-bold mb-4" 
+                        :class="{
+                            'text-red-500': modals.confirm.type === 'delete',
+                            'text-vic-gold': modals.confirm.type === 'confirm',
+                            'text-blue-400': modals.confirm.type === 'use'
+                        }">{{ modals.confirm.title }}</h3>
+                    <p class="text-gray-300 mb-6 whitespace-pre-line">{{ modals.confirm.message }}</p>
 
                     <div class="flex gap-4 justify-center">
                         <button @click="modals.confirm = null" :disabled="loading" class="px-6 py-2 border border-gray-600 text-gray-400 rounded hover:bg-gray-800">ยกเลิก</button>
                         <button @click="modals.confirm.onConfirm" :disabled="loading" class="px-6 py-2 rounded text-white font-bold shadow-lg"
-                                :class="modals.confirm.type === 'delete' ? 'bg-red-900 border border-red-600 hover:bg-red-800' : 'bg-green-800 border border-green-600 hover:bg-green-700'">
+                                :class="{
+                                    'bg-red-900 border border-red-600 hover:bg-red-800': modals.confirm.type === 'delete',
+                                    'bg-green-800 border border-green-600 hover:bg-green-700': modals.confirm.type === 'confirm',
+                                    'bg-blue-800 border border-blue-500 hover:bg-blue-700': modals.confirm.type === 'use'
+                                }">
                             {{ modals.confirm.confirmText }}
                         </button>
                     </div>
                 </div>
             </div>
 
+            <!-- Modal: Pathway (Create/Edit) -->
             <div v-if="modalPathway" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-sm relative shadow-2xl">
                     <button @click="modalPathway = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -1029,6 +1388,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Sequence (Create/Edit) -->
             <div v-if="modalSequence" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-green-600 w-full max-w-sm relative shadow-2xl">
                     <button @click="modalSequence = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -1049,6 +1409,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Map Configuration -->
             <div v-if="modalMapConfig" class="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-vic-gold w-full max-w-md relative shadow-2xl">
                     <button @click="modalMapConfig = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
@@ -1060,6 +1421,7 @@
                 </div>
             </div>
 
+            <!-- Modal: Map Cell Detail -->
             <div v-if="modalCellDetail" class="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown rounded border-2 border-vic-gold w-full max-w-sm relative shadow-2xl flex flex-col max-h-[80vh]">
                     <div class="p-4 border-b border-vic-gold/30 flex justify-between items-center bg-black/20">
@@ -1087,21 +1449,50 @@
                 </div>
             </div>
 
+            <!-- Modal: Place Character on Map -->
             <div v-if="modalPlaceEntity" class="fixed inset-0 bg-black/90 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-vic-darkbrown p-6 rounded border-2 border-blue-500 w-full max-w-sm relative shadow-2xl">
                     <button @click="modalPlaceEntity = false" class="absolute top-2 right-4 text-gray-400 hover:text-white">✕</button>
                     <h3 class="text-xl text-blue-400 font-bold mb-4">วางตัวละคร (X:{{ selectedCell.x }}, Y:{{ selectedCell.y }})</h3>
 
-                    <label class="text-xs text-gray-400 mb-1 block">เลือกผู้เล่น</label>
-                    <select v-model="formPlacement.player_id" class="input-vic mb-4">
-                        <option value="" disabled>-- เลือกรายชื่อ --</option>
-                        <option v-for="p in players" :key="p.id" :value="p.id">{{ p.character_name }} ({{ p.name }})</option>
-                    </select>
+                    <!-- Type Selection -->
+                    <div class="flex gap-4 mb-4 justify-center">
+                        <label class="flex items-center gap-2 cursor-pointer bg-black/40 px-3 py-1 rounded border border-gray-700 hover:border-vic-gold transition">
+                            <input type="radio" v-model="formPlacement.type" value="player" class="radio-vic accent-vic-gold">
+                            <span class="text-gray-300">ผู้เล่น</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer bg-black/40 px-3 py-1 rounded border border-gray-700 hover:border-red-500 transition">
+                            <input type="radio" v-model="formPlacement.type" value="enemy" class="radio-vic accent-red-500">
+                            <span class="text-red-300">ศัตรู</span>
+                        </label>
+                    </div>
 
-                    <button @click="submitPlacement" :disabled="!formPlacement.player_id" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 rounded border border-blue-600">ยืนยันการวาง</button>
+                    <label class="text-xs text-gray-400 mb-1 block">เลือก{{ formPlacement.type === 'player' ? 'ผู้เล่น' : 'ศัตรู' }}</label>
+                    <div class="relative group mb-4">
+                        <input type="text" v-model="placementSearch" 
+                               placeholder="พิมพ์ชื่อเพื่อค้นหา..."
+                               class="input-vic w-full"
+                               @input="formPlacement.id = ''" />
+                        
+                        <div v-if="placementSearch && !formPlacement.id" class="absolute left-0 right-0 top-full mt-1 bg-black border border-gray-600 rounded max-h-40 overflow-y-auto z-50 shadow-xl">
+                            <div v-if="placementOptions.length === 0" class="p-2 text-gray-500 text-xs italic">ไม่พบรายชื่อนี้</div>
+                            <div v-for="e in placementOptions" :key="e.id" 
+                                 @click="selectPlacementTarget(e)"
+                                 class="p-2 hover:bg-blue-900 hover:text-white cursor-pointer text-sm border-b border-gray-800 last:border-0">
+                                <span class="font-bold">{{ e.character_name }}</span> 
+                                <span class="text-xs opacity-70">({{ e.name }})</span>
+                            </div>
+                        </div>
+
+                        <!-- Selected Indicator -->
+                        <div v-if="formPlacement.id" class="absolute right-2 top-2 text-green-500 font-bold text-xs pointer-events-none">✓</div>
+                    </div>
+
+                    <button @click="submitPlacement" :disabled="!formPlacement.id" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 rounded border border-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">ยืนยันการวาง</button>
                 </div>
             </div>
 
+            <!-- Modal: Character Full Detail -->
             <div v-if="selectedCharacter" class="fixed inset-0 bg-black/90 z-[70] flex justify-center items-center p-4 backdrop-blur-md" @click.self="selectedCharacter = null">
                 <div class="bg-vic-darkbrown w-full max-w-4xl rounded border-2 border-vic-gold shadow-2xl flex flex-col md:flex-row relative animate-slide-up my-auto max-h-[90vh]">
                     <button @click="selectedCharacter = null" class="absolute top-4 right-4 text-vic-gold hover:text-white z-10 text-2xl">✕</button>
@@ -1157,6 +1548,55 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="w-full py-10 mt-12 bg-neutral-950 border-t border-neutral-800 font-mono text-gray-400 relative z-20">
+        <div class="flex flex-col items-center gap-6">
+            
+            <!-- Branding: Terminal Style -->
+            <div class="flex items-center gap-3">
+                <span class="text-green-500 animate-pulse">></span>
+                <h3 class="text-sm tracking-[0.2em] text-white font-bold">
+                    KENDRICK'S CODE <span class="text-neutral-600 font-normal ml-2">// SYSTEM ARCHITECT</span>
+                </h3>
+            </div>
+
+            <!-- The Arsenal (Tech Stack) -->
+            <div class="flex flex-col items-center gap-3">
+                <p class="text-[10px] uppercase tracking-widest text-neutral-600">The Neural Engines & Tools</p>
+                
+                <div class="flex flex-wrap justify-center items-center gap-6 px-4">
+                    <!-- AI Group -->
+                    <div class="flex items-center gap-4 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                        <a href="https://gemini.google.com" target="_blank" title="Gemini"><img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg" class="h-5 w-auto" alt="Gemini"></a>
+                        <a href="https://chat.openai.com" target="_blank" title="ChatGPT"><img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" class="h-5 w-auto invert" alt="ChatGPT"></a>
+                        <a href="https://claude.ai" target="_blank" title="Claude"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Anthropic_logo.svg" class="h-5 w-auto invert" alt="Claude"></a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="h-4 w-px bg-neutral-800"></div>
+
+                    <!-- Dev Group -->
+                    <div class="flex items-center gap-4 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                        <a href="https://code.visualstudio.com" target="_blank" title="VS Code"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg" class="h-5 w-auto" alt="VS Code"></a>
+                        <a href="https://vuejs.org" target="_blank" title="Vue.js"><img src="https://upload.wikimedia.org/wikipedia/commons/9/95/Vue.js_Logo_2.svg" class="h-5 w-auto" alt="Vue"></a>
+                        <a href="https://tailwindcss.com" target="_blank" title="Tailwind CSS"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg" class="h-4 w-auto" alt="Tailwind"></a>
+                        <a href="https://github.com" target="_blank" title="GitHub"><img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" class="h-5 w-auto invert" alt="GitHub"></a>
+                        <a href="https://supabase.com" target="_blank" title="Supabase"><img src="https://seeklogo.com/images/S/supabase-logo-DCC676FFE2-seeklogo.com.png" class="h-5 w-auto" alt="Supabase"></a>
+                        <a href="https://vercel.com" target="_blank" title="Vercel"><img src="https://assets.vercel.com/image/upload/v1588805858/repositories/vercel/logo.png" class="h-4 w-auto invert" alt="Vercel"></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <p class="text-[10px] text-neutral-700 mt-2">
+                © 2026 EXECUTION COMPLETED.
+            </p>
+        </div>
+    </footer>
+
+    <!-- =========================================================
+         SCRIPTS
+         ========================================================= -->
     <script src="economy.js"></script>
     <script src="script.js"></script>
 </body>
