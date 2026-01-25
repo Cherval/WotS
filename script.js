@@ -11,9 +11,11 @@
 // SECTION 0: PWA SERVICE WORKER REGISTRATION
 // =============================================================================
 
+let deferredPrompt = null;
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('./service-worker.js')
             .then((registration) => {
                 console.log('[PWA] Service Worker registered:', registration.scope);
                 
@@ -32,6 +34,27 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
+// Capture the install prompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('[PWA] beforeinstallprompt event fired');
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Show install button if Vue app is ready
+    if (window.vueApp) {
+        window.vueApp.showInstallButton = true;
+    }
+});
+
+// Listen for successful install
+window.addEventListener('appinstalled', () => {
+    console.log('[PWA] App was installed successfully');
+    deferredPrompt = null;
+    if (window.vueApp) {
+        window.vueApp.showInstallButton = false;
+    }
+});
 
 // =============================================================================
 // SECTION 1: CONFIGURATION & CONSTANTS
@@ -119,6 +142,7 @@ createApp({
         const loading = ref(false)
         const currentView = ref('dashboard')
         const toasts = ref([])
+        const showInstallButton = ref(false)  // PWA Install Prompt
 
         // ----- Core Data Entities -----
         const currentUser = ref(null)
@@ -1475,7 +1499,37 @@ createApp({
                 session.value = _session
                 if (_session) fetchData()
             })
+
+            // Expose Vue app instance for PWA install prompt
+            window.vueApp = {
+                get showInstallButton() { return showInstallButton.value },
+                set showInstallButton(val) { showInstallButton.value = val }
+            }
+
+            // Check if install prompt is already available
+            if (deferredPrompt) {
+                showInstallButton.value = true
+            }
         })
+
+        // PWA Install Handler
+        async function installPWA() {
+            if (!deferredPrompt) {
+                console.log('[PWA] No install prompt available')
+                return
+            }
+
+            // Show the install prompt
+            deferredPrompt.prompt()
+
+            // Wait for user response
+            const { outcome } = await deferredPrompt.userChoice
+            console.log('[PWA] User choice:', outcome)
+
+            // Clear the prompt
+            deferredPrompt = null
+            showInstallButton.value = false
+        }
 
         // =====================================================================
         // 2.12 RETURN PUBLIC API
@@ -1494,6 +1548,8 @@ createApp({
             toasts,
             currentUser,
             currentView,
+            showInstallButton,
+            installPWA,
 
             // ----- Data Collections -----
             players,

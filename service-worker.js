@@ -4,17 +4,17 @@
 // Handles caching and offline functionality for PWA
 // =================================================================
 
-const CACHE_NAME = 'wots-cache-v1';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'wots-cache-v2';
+const OFFLINE_URL = './offline.html';
 
 // Assets to cache on install
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/script.js',
-    '/economy.js',
-    '/card.html',
-    '/offline.html',
+    './',
+    './index.html',
+    './script.js',
+    './economy.js',
+    './card.html',
+    './offline.html',
     // External CDN resources
     'https://unpkg.com/vue@3/dist/vue.global.js',
     'https://cdn.tailwindcss.com',
