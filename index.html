@@ -1568,9 +1568,12 @@
 
     <!-- PWA Install Instructions Modal -->
     <div v-if="showInstallModal"
-         @click="closeInstallModal"
-         class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+         @click.self="closeInstallModal"
+         @touchend.self="closeInstallModal"
+         class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+         style="cursor: pointer;">
         <div @click.stop
+             @touchend.stop
              class="bg-gradient-to-br from-neutral-900 to-black border-2 border-vic-gold rounded-xl p-6 max-w-md w-full shadow-2xl">
             
             <!-- Header -->
@@ -1581,8 +1584,11 @@
                     </svg>
                     ติดตั้งแอป
                 </h3>
-                <button @click="closeInstallModal"
-                        class="text-gray-500 hover:text-white transition">
+                <button @click.stop="closeInstallModal"
+                        @touchend.stop.prevent="closeInstallModal"
+                        type="button"
+                        class="text-gray-500 hover:text-white transition touch-manipulation"
+                        style="cursor: pointer; -webkit-tap-highlight-color: transparent;">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -1637,8 +1643,11 @@
             </div>
 
             <!-- Close Button -->
-            <button @click="closeInstallModal"
-                    class="w-full mt-6 bg-gradient-to-r from-vic-gold to-yellow-600 hover:from-yellow-500 hover:to-vic-gold text-black font-bold py-3 px-6 rounded-lg transition-all">
+            <button @click.stop="closeInstallModal"
+                    @touchend.stop.prevent="closeInstallModal"
+                    type="button"
+                    class="w-full mt-6 bg-gradient-to-r from-vic-gold to-yellow-600 hover:from-yellow-500 hover:to-vic-gold text-black font-bold py-3 px-6 rounded-lg transition-all touch-manipulation"
+                    style="cursor: pointer; -webkit-tap-highlight-color: transparent;">
                 เข้าใจแล้ว
             </button>
         </div>
