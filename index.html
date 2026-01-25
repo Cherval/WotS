@@ -1159,8 +1159,16 @@
                     </div>
 
                     <div class="p-4 border-t border-gray-700 bg-black/20 flex justify-end gap-3">
-                        <button @click="modals.upgrade = false" :disabled="loading" class="px-4 py-2 text-gray-400 hover:text-white">ยกเลิก</button>
-                        <button @click="submitUpgrade" :disabled="loading" class="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded font-bold shadow-lg">ยืนยัน</button>
+                        <button @click="modals.upgrade = false" :disabled="actionLoading.upgrade" class="px-4 py-2 text-gray-400 hover:text-white">ยกเลิก</button>
+                        <button @click="submitUpgrade" 
+                                :disabled="actionLoading.upgrade" 
+                                class="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <svg v-if="actionLoading.upgrade" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {{ actionLoading.upgrade ? 'กำลังบันทึก...' : 'ยืนยัน' }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1176,7 +1184,15 @@
                         <input type="number" v-model.number="grantData.amount" min="1" class="input-vic text-center text-3xl font-bold w-32 h-16 border-purple-800 text-purple-200 focus:border-purple-500" />
                     </div>
 
-                    <button @click="submitGrant" :disabled="loading || grantData.amount <= 0" class="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3 rounded border border-purple-600 shadow-lg disabled:opacity-50">ยืนยัน</button>
+                    <button @click="submitGrant" 
+                            :disabled="actionLoading.grant || grantData.amount <= 0" 
+                            class="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-3 rounded border border-purple-600 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <svg v-if="actionLoading.grant" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ actionLoading.grant ? 'กำลังมอบ SP...' : 'ยืนยัน' }}
+                    </button>
                 </div>
             </div>
 
@@ -1219,7 +1235,15 @@
                         </div>
                     </div>
 
-                    <button @click="submitCreate" :disabled="loading" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded mt-6 border border-green-500 shadow-lg disabled:opacity-50">ยืนยัน</button>
+                    <button @click="submitCreate" 
+                            :disabled="actionLoading.create" 
+                            class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-3 rounded mt-6 border border-green-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <svg v-if="actionLoading.create" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ actionLoading.create ? 'กำลังสร้าง...' : 'ยืนยัน' }}
+                    </button>
                 </div>
             </div>
 
@@ -1311,7 +1335,15 @@
 
                     </div> <div class="p-4 border-t border-gray-700 bg-black/20 flex justify-end gap-3 shrink-0">
                         <button @click="modals.edit = false" class="text-gray-400 px-6 hover:text-white transition uppercase text-xs font-bold">ยกเลิก</button>
-                        <button @click="submitEdit" class="btn-gold bg-blue-700 border-blue-500 px-8 uppercase font-bold text-xs tracking-widest hover:bg-blue-600">บันทึกข้อมูล</button>
+                        <button @click="submitEdit" 
+                                :disabled="actionLoading.edit"
+                                class="btn-gold bg-blue-700 border-blue-500 px-8 uppercase font-bold text-xs tracking-widest hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <svg v-if="actionLoading.edit" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {{ actionLoading.edit ? 'กำลังบันทึก...' : 'บันทึกข้อมูล' }}
+                        </button>
                     </div>
 
                 </div>
@@ -1506,7 +1538,15 @@
                         <div v-if="formPlacement.id" class="absolute right-2 top-2 text-green-500 font-bold text-xs pointer-events-none">✓</div>
                     </div>
 
-                    <button @click="submitPlacement" :disabled="!formPlacement.id" class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 rounded border border-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed">ยืนยันการวาง</button>
+                    <button @click="submitPlacement" 
+                            :disabled="!formPlacement.id || actionLoading.mapPlace" 
+                            class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-2 rounded border border-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <svg v-if="actionLoading.mapPlace" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ actionLoading.mapPlace ? 'กำลังวาง...' : 'ยืนยันการวาง' }}
+                    </button>
                 </div>
             </div>
 

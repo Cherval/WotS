@@ -139,13 +139,30 @@ createApp({
 
         // ----- System State -----
         const session = ref(null)
-        const loading = ref(false)
+        const loading = ref(false)  // Global loading (ใช้สำหรับ login/logout)
         const currentView = ref('dashboard')
         const toasts = ref([])
         const showInstallButton = ref(false)  // PWA Install Prompt (Android only)
         const isIOS = ref(false)
         const isAndroid = ref(false)
         const isMobile = ref(false)
+
+        // ----- Action Loading States (ป้องกัน Double Action) -----
+        const actionLoading = ref({
+            create: false,
+            edit: false,
+            delete: false,
+            grant: false,
+            upgrade: false,
+            transfer: false,
+            grantMoney: false,
+            transferMoney: false,
+            itemTransfer: false,
+            mapPlace: false,
+            mapDelete: false,
+            pathwayCreate: false,
+            sequenceCreate: false
+        })
 
         // ----- Core Data Entities -----
         const currentUser = ref(null)
@@ -649,8 +666,8 @@ createApp({
          * Submit create character form
          */
         async function submitCreate() {
-            if (loading.value) return
-            loading.value = true
+            if (actionLoading.value.create) return
+            actionLoading.value.create = true
 
             const table = modalType.value === 'player' ? 'players' : 'enemies'
             const { data, error } = await sb.from(table).insert([form.value]).select()
@@ -667,7 +684,7 @@ createApp({
                 showToast(error?.message || 'Error', 'error')
             }
 
-            loading.value = false
+            actionLoading.value.create = false
         }
 
         /**
@@ -702,8 +719,8 @@ createApp({
          * Submit edit character form
          */
         async function submitEdit() {
-            if (loading.value) return
-            loading.value = true
+            if (actionLoading.value.edit) return
+            actionLoading.value.edit = true
 
             const table = modalType.value === 'player' ? 'players' : 'enemies'
             const skillTable = modalType.value === 'player' ? 'player_skills' : 'enemy_skills'
@@ -725,7 +742,7 @@ createApp({
                 showToast(err1?.message || err2?.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.edit = false
         }
 
         // =====================================================================
@@ -746,7 +763,8 @@ createApp({
          * Submit pathway form
          */
         async function submitPathway() {
-            loading.value = true
+            if (actionLoading.value.pathwayCreate) return
+            actionLoading.value.pathwayCreate = true
 
             const { error } = formPathway.value.id
                 ? await sb.from('pathways').update(formPathway.value).eq('id', formPathway.value.id)
@@ -760,7 +778,7 @@ createApp({
                 showToast(error.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.pathwayCreate = false
         }
 
         /**
@@ -773,10 +791,11 @@ createApp({
                 type: 'delete',
                 confirmText: 'ลบเลย',
                 onConfirm: async () => {
-                    loading.value = true
+                    if (actionLoading.value.delete) return
+                    actionLoading.value.delete = true
                     await sb.from('pathways').delete().eq('id', id)
                     fetchData()
-                    loading.value = false
+                    actionLoading.value.delete = false
                 }
             })
         }
@@ -795,7 +814,8 @@ createApp({
          * Submit sequence form
          */
         async function submitSequence() {
-            loading.value = true
+            if (actionLoading.value.sequenceCreate) return
+            actionLoading.value.sequenceCreate = true
 
             const { error } = formSequence.value.id
                 ? await sb.from('sequences').update(formSequence.value).eq('id', formSequence.value.id)
@@ -809,7 +829,7 @@ createApp({
                 showToast(error.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.sequenceCreate = false
         }
 
         /**
@@ -822,10 +842,11 @@ createApp({
                 type: 'delete',
                 confirmText: 'ลบเลย',
                 onConfirm: async () => {
-                    loading.value = true
+                    if (actionLoading.value.delete) return
+                    actionLoading.value.delete = true
                     await sb.from('sequences').delete().eq('id', id)
                     fetchData()
-                    loading.value = false
+                    actionLoading.value.delete = false
                 }
             })
         }
@@ -955,8 +976,9 @@ createApp({
          */
         async function submitPlacement() {
             if (!formPlacement.value.id) return
+            if (actionLoading.value.mapPlace) return
 
-            loading.value = true
+            actionLoading.value.mapPlace = true
 
             const payload = {
                 map_id: currentMap.value.id,
@@ -984,7 +1006,7 @@ createApp({
                 showToast(error.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.mapPlace = false
         }
 
         /**
@@ -997,7 +1019,8 @@ createApp({
                 type: 'delete',
                 confirmText: 'นำออก',
                 onConfirm: async () => {
-                    loading.value = true
+                    if (actionLoading.value.mapDelete) return
+                    actionLoading.value.mapDelete = true
 
                     const { error } = await sb.from('map_positions')
                         .delete()
@@ -1013,7 +1036,7 @@ createApp({
                         showToast(error.message, 'error')
                     }
 
-                    loading.value = false
+                    actionLoading.value.mapDelete = false
                 }
             })
         }
@@ -1338,8 +1361,8 @@ createApp({
          * Submit upgrade form
          */
         async function submitUpgrade() {
-            if (loading.value) return
-            loading.value = true
+            if (actionLoading.value.upgrade) return
+            actionLoading.value.upgrade = true
 
             const updatePayload = {
                 skill_points: upgradeForm.value.remainingSP
@@ -1362,7 +1385,7 @@ createApp({
                 showToast(error.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.upgrade = false
         }
 
         /**
@@ -1377,8 +1400,8 @@ createApp({
          * Submit grant SP
          */
         async function submitGrant() {
-            if (loading.value || grantData.value.amount <= 0) return
-            loading.value = true
+            if (actionLoading.value.grant || grantData.value.amount <= 0) return
+            actionLoading.value.grant = true
 
             const newPoints = (grantData.value.target.skill_points || 0) + grantData.value.amount
 
@@ -1394,7 +1417,7 @@ createApp({
                 showToast(error.message, 'error')
             }
 
-            loading.value = false
+            actionLoading.value.grant = false
         }
 
         /**
@@ -1436,8 +1459,9 @@ createApp({
                 type: 'delete',
                 confirmText: 'ลบทิ้ง',
                 onConfirm: async () => {
+                    if (actionLoading.value.delete) return
                     modals.value.confirm = null
-                    loading.value = true
+                    actionLoading.value.delete = true
 
                     const skillTable = type === 'player' ? 'player_skills' : 'enemy_skills'
                     const idCol = type === 'player' ? 'player_id' : 'enemy_id'
@@ -1448,7 +1472,7 @@ createApp({
 
                     showToast('ลบข้อมูลสำเร็จ', 'success')
                     fetchData()
-                    loading.value = false
+                    actionLoading.value.delete = false
                 }
             }
         }
@@ -1577,6 +1601,7 @@ createApp({
             currentView,
             showInstallButton,
             installPWA,
+            actionLoading,  // Action-specific loading states
 
             // ----- Data Collections -----
             players,
