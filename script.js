@@ -143,6 +143,10 @@ createApp({
         const currentView = ref('dashboard')
         const toasts = ref([])
         const showInstallButton = ref(false)  // PWA Install Prompt
+        const isIOS = ref(false)
+        const isAndroid = ref(false)
+        const isMobile = ref(false)
+        const showInstallModal = ref(false)
 
         // ----- Core Data Entities -----
         const currentUser = ref(null)
@@ -1500,6 +1504,12 @@ createApp({
                 if (_session) fetchData()
             })
 
+            // Detect platform
+            const ua = window.navigator.userAgent.toLowerCase()
+            isIOS.value = /iphone|ipad|ipod/.test(ua)
+            isAndroid.value = /android/.test(ua)
+            isMobile.value = isIOS.value || isAndroid.value || /mobile/.test(ua)
+
             // Expose Vue app instance for PWA install prompt
             window.vueApp = {
                 get showInstallButton() { return showInstallButton.value },
@@ -1510,25 +1520,43 @@ createApp({
             if (deferredPrompt) {
                 showInstallButton.value = true
             }
+
+            // For mobile without beforeinstallprompt (especially iOS), show manual install button
+            if (isMobile.value) {
+                // Check if app is already installed (standalone mode)
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone
+                    || document.referrer.includes('android-app://')
+
+                if (!isStandalone) {
+                    // Show install button after a short delay
+                    setTimeout(() => {
+                        if (!showInstallButton.value) {
+                            showInstallButton.value = true
+                        }
+                    }, 2000)
+                }
+            }
         })
 
         // PWA Install Handler
         async function installPWA() {
-            if (!deferredPrompt) {
-                console.log('[PWA] No install prompt available')
+            // If we have the native prompt (Android Chrome), use it
+            if (deferredPrompt) {
+                deferredPrompt.prompt()
+                const { outcome } = await deferredPrompt.userChoice
+                console.log('[PWA] User choice:', outcome)
+                deferredPrompt = null
+                showInstallButton.value = false
                 return
             }
 
-            // Show the install prompt
-            deferredPrompt.prompt()
+            // Otherwise, show manual instructions modal
+            showInstallModal.value = true
+        }
 
-            // Wait for user response
-            const { outcome } = await deferredPrompt.userChoice
-            console.log('[PWA] User choice:', outcome)
-
-            // Clear the prompt
-            deferredPrompt = null
-            showInstallButton.value = false
+        function closeInstallModal() {
+            showInstallModal.value = false
         }
 
         // =====================================================================
@@ -1549,7 +1577,12 @@ createApp({
             currentUser,
             currentView,
             showInstallButton,
+            showInstallModal,
+            isIOS,
+            isAndroid,
+            isMobile,
             installPWA,
+            closeInstallModal,
 
             // ----- Data Collections -----
             players,

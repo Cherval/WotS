@@ -1566,6 +1566,84 @@
         </div>
     </div>
 
+    <!-- PWA Install Instructions Modal -->
+    <div v-if="showInstallModal"
+         @click="closeInstallModal"
+         class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+        <div @click.stop
+             class="bg-gradient-to-br from-neutral-900 to-black border-2 border-vic-gold rounded-xl p-6 max-w-md w-full shadow-2xl">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-vic-gold flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    ติดตั้งแอป
+                </h3>
+                <button @click="closeInstallModal"
+                        class="text-gray-500 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- iOS Instructions -->
+            <div v-if="isIOS" class="space-y-4">
+                <p class="text-gray-300 text-sm">สำหรับ iOS ให้ทำตามขั้นตอนนี้:</p>
+                <ol class="space-y-3 text-sm text-gray-400">
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">1</span>
+                        <span>กดปุ่ม <strong class="text-blue-400">แชร์</strong> (ไอคอนสี่เหลี่ยมลูกศร) ที่ด้านล่าง</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">2</span>
+                        <span>เลือก <strong class="text-white">"Add to Home Screen"</strong></span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">3</span>
+                        <span>กด <strong class="text-white">"Add"</strong> เพื่อยืนยัน</span>
+                    </li>
+                </ol>
+                <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                    <p class="text-xs text-blue-300">💡 ต้องใช้ Safari เท่านั้น Chrome บน iOS ยังไม่รองรับ</p>
+                </div>
+            </div>
+
+            <!-- Android Instructions -->
+            <div v-else-if="isAndroid" class="space-y-4">
+                <p class="text-gray-300 text-sm">สำหรับ Android ให้ทำตามขั้นตอนนี้:</p>
+                <ol class="space-y-3 text-sm text-gray-400">
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">1</span>
+                        <span>กดปุ่ม <strong class="text-white">⋮</strong> (เมนู 3 จุด) ที่มุมบนขวา</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">2</span>
+                        <span>เลือก <strong class="text-white">"Add to Home screen"</strong> หรือ <strong class="text-white">"Install app"</strong></span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-vic-gold/20 rounded-full flex items-center justify-center text-vic-gold font-bold text-xs">3</span>
+                        <span>กด <strong class="text-white">"Install"</strong> เพื่อยืนยัน</span>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Desktop/Other -->
+            <div v-else class="space-y-4">
+                <p class="text-gray-300 text-sm">ตอนนี้คุณสามารถติดตั้งแอปได้แล้ว</p>
+                <p class="text-sm text-gray-400">มองหาไอคอน <strong class="text-white">ติดตั้ง</strong> ที่ Address Bar หรือ <strong class="text-white">เมนู</strong> ของ Browser</p>
+            </div>
+
+            <!-- Close Button -->
+            <button @click="closeInstallModal"
+                    class="w-full mt-6 bg-gradient-to-r from-vic-gold to-yellow-600 hover:from-yellow-500 hover:to-vic-gold text-black font-bold py-3 px-6 rounded-lg transition-all">
+                เข้าใจแล้ว
+            </button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="w-full py-10 mt-12 bg-neutral-950 border-t border-neutral-800 font-mono text-gray-400 relative z-20">
         <div class="flex flex-col items-center gap-6">
